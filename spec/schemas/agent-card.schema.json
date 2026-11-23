@@ -1,16 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/ArdaYMC/elci/spec/schemas/agent-card.schema.json",
-  "title": "Elçi agent card",
+  "title": "Elçi principal card (/.well-known/elci.json)",
   "type": "object",
-  "required": ["elci", "principal", "agents"],
+  "required": ["protocol_version", "principal", "agents"],
   "properties": {
-    "elci": {"const": "0.0.1"},
+    "protocol_version": {"const": "0.0.2"},
     "principal": {
       "type": "object",
-      "required": ["name"],
+      "required": ["name", "domain"],
       "properties": {
         "name": {"type": "string", "minLength": 1},
+        "domain": {"type": "string", "minLength": 1},
         "fallback": {"type": "string", "pattern": "^mailto:"}
       }
     },
@@ -18,13 +19,20 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "topics", "endpoint", "keys"],
+        "required": ["id", "topics", "endpoint"],
+        "oneOf": [{"required": ["jwks"]}, {"required": ["jwks_uri"]}],
         "properties": {
-          "id": {"type": "string", "format": "uri", "pattern": "^https://"},
+          "id": {"type": "string", "pattern": "^https://"},
           "name": {"type": "string"},
           "topics": {"type": "array", "minItems": 1, "items": {"type": "string"}},
-          "endpoint": {"type": "string", "format": "uri", "pattern": "^https://"},
-          "keys": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["kty"]}}
+          "endpoint": {"type": "string", "pattern": "^https://"},
+          "jwks": {
+            "type": "object",
+            "required": ["keys"],
+            "properties": {"keys": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["kty"]}}}
+          },
+          "jwks_uri": {"type": "string", "pattern": "^https://"},
+          "a2a_card": {"type": "string", "pattern": "^https://"}
         }
       }
     }

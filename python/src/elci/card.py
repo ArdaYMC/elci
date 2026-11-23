@@ -31,13 +31,16 @@ class AgentEntry:
     id: str
     topics: tuple[str, ...]
     endpoint: str
-    keys: tuple[dict, ...]
+    keys: tuple[dict, ...] = ()
+    jwks_uri: str | None = None
+    a2a_card: str | None = None
     name: str | None = None
 
 
 @dataclass(frozen=True)
 class AgentCard:
     principal: str
+    domain: str
     agents: tuple[AgentEntry, ...]
     fallback: str | None = None
     raw: dict = field(default_factory=dict, compare=False, repr=False)
@@ -53,13 +56,15 @@ class AgentCard:
                 id=a["id"],
                 topics=tuple(a["topics"]),
                 endpoint=a["endpoint"],
-                keys=tuple(a["keys"]),
+                keys=tuple(a.get("jwks", {}).get("keys", ())),
+                jwks_uri=a.get("jwks_uri"),
+                a2a_card=a.get("a2a_card"),
                 name=a.get("name"),
             )
             for a in data["agents"]
         )
         principal = data["principal"]
-        return cls(principal["name"], agents, principal.get("fallback"), data)
+        return cls(principal["name"], principal["domain"], agents, principal.get("fallback"), data)
 
     def agent_for(self, topic: str) -> AgentEntry | None:
         """First public agent that accepts ``topic``; None means use the fallback."""
