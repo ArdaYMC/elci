@@ -15,6 +15,7 @@
     "created_at": {"type": "string", "format": "date-time"},
     "body": {"type": "object"},
     "approval": {"type": "object"},
+    "delegation": {"type": "string", "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"},
     "signature": {"type": "string"}
   }
 }
