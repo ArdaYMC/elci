@@ -32,7 +32,18 @@ Elçi focuses on three things existing attempts leave out:
 | --- | --- |
 | [`spec/`](spec/) | The protocol draft, JSON Schemas and language-neutral conformance vectors. **This is the standard.** |
 | [`python/`](python/) | Reference implementation (PyPI package `elci`). |
+| [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
+
+## What works today (0.0.4)
+
+- Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
+- Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks
+- A verifying inbox (schema, signature, delegation, replay) and a small HTTP transport
+- Need-to-know disclosure levels
+- Email fallback for people without an agent, with best-effort reply parsing
+
+Try the demo: `pip install -e python && python examples/three_agents.py --yes`
 
 ## Quick look
 
