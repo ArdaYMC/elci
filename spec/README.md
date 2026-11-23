@@ -1,4 +1,4 @@
-# Elçi protocol — draft 0.0.1
+# Elçi protocol — draft 0.0.2
 
 Status: working draft. Nothing here is stable. Key words MUST, SHOULD, MAY follow RFC 2119.
 
@@ -8,7 +8,7 @@ Status: working draft. Nothing here is stable. Key words MUST, SHOULD, MAY follo
 - **Agent**: software acting for a principal within a **mandate** (topics, actions, disclosure rules).
 - **Counterparty**: the other principal, reached through their agent or, if they have none, by email.
 
-## 2. Discovery: the agent card
+## 2. Discovery: the principal card
 
 A principal publishes one document at:
 
@@ -16,25 +16,28 @@ A principal publishes one document at:
 https://<principal-domain>/.well-known/elci.json
 ```
 
-It lists the principal's public agents. Schema: [`schemas/agent-card.schema.json`](schemas/agent-card.schema.json).
+Schema: [`schemas/agent-card.schema.json`](schemas/agent-card.schema.json). Top level:
+
+- `protocol_version`: `"0.0.2"`;
+- `principal`: `name`, `domain`, optional `fallback` (`mailto:` URL for people without an agent);
+- `agents[]`: the principal's **public** agents.
+
 Each agent entry declares:
 
-- `id`: stable URL identifying the agent;
+- `id`: stable HTTPS URL identifying the agent;
 - `topics`: what it may be contacted about (e.g. `scheduling`, `collaboration`);
 - `endpoint`: HTTPS URL receiving Elçi messages;
-- `keys`: public keys (JWK) used to verify its signed messages;
-- `fallback`: how to reach the principal without an agent (`mailto:`).
+- exactly one of `jwks` (an inline JWK Set) or `jwks_uri` (URL of one) to verify its signatures;
+- optional `a2a_card`: URL of the agent's A2A Agent Card, for clients that already speak A2A.
 
 A principal MAY keep internal agents (e.g. a coordinator with full memory) out of the card entirely.
-
-Open question: align field names with the Personal Agent Protocol's `/.well-known/poppy.json` and
-the A2A Agent Card once both drafts are reviewed (tracked in an issue).
+How this maps to the Personal Agent Protocol and A2A is in [`../docs/compatibility.md`](../docs/compatibility.md).
 
 ## 3. Messages
 
 Every message is a JSON envelope (schema: [`schemas/message.schema.json`](schemas/message.schema.json)) with
-`from`, `to`, `on_behalf_of`, `topic`, `intent`, `body`, `thread`, `created_at`, and a detached
-signature over the canonical JSON. Intents in 0.0.1:
+`protocol_version`, `from`, `to`, `on_behalf_of`, `topic`, `intent`, `body`, `thread`, `created_at`, and a detached
+signature over the canonical JSON. Intents in 0.0.2:
 
 | Intent | Meaning |
 | --- | --- |

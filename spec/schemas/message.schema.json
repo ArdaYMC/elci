@@ -3,9 +3,9 @@
   "$id": "https://github.com/ArdaYMC/elci/spec/schemas/message.schema.json",
   "title": "Elçi message envelope",
   "type": "object",
-  "required": ["elci", "from", "to", "on_behalf_of", "topic", "intent", "thread", "created_at", "body"],
+  "required": ["protocol_version", "from", "to", "on_behalf_of", "topic", "intent", "thread", "created_at", "body"],
   "properties": {
-    "elci": {"const": "0.0.1"},
+    "protocol_version": {"const": "0.0.2"},
     "from": {"type": "string", "pattern": "^https://"},
     "to": {"type": "string"},
     "on_behalf_of": {"type": "string"},
