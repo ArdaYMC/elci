@@ -1,0 +1,26 @@
+[
+  {
+    "name": "busy_free hides the reason",
+    "policy": {"availability": "busy_free"},
+    "input": {"slot": "2026-11-26T14:00:00+03:00", "busy": true, "title": "Supplier meeting", "attendees": ["x@acme.example"]},
+    "expected": {"slot": "2026-11-26T14:00:00+03:00", "busy": true}
+  },
+  {
+    "name": "title level reveals title but not attendees",
+    "policy": {"availability": "title"},
+    "input": {"slot": "2026-11-26T14:00:00+03:00", "busy": true, "title": "Supplier meeting", "attendees": ["x@acme.example"]},
+    "expected": {"slot": "2026-11-26T14:00:00+03:00", "busy": true, "title": "Supplier meeting"}
+  },
+  {
+    "name": "none reveals nothing",
+    "policy": {"availability": "none"},
+    "input": {"slot": "2026-11-26T14:00:00+03:00", "busy": true, "title": "Supplier meeting"},
+    "expected": {}
+  },
+  {
+    "name": "full reveals everything",
+    "policy": {"availability": "full"},
+    "input": {"slot": "2026-11-26T14:00:00+03:00", "busy": true, "title": "Supplier meeting", "attendees": ["x@acme.example"]},
+    "expected": {"slot": "2026-11-26T14:00:00+03:00", "busy": true, "title": "Supplier meeting", "attendees": ["x@acme.example"]}
+  }
+]

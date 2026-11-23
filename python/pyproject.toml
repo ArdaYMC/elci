@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "elci"
+version = "0.0.1"
+description = "Reference implementation of Elçi, an open person-to-person agent protocol."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Arda Yemci" }]
+dependencies = ["jsonschema>=4.18"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/ArdaYMC/elci"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/elci"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"../spec/schemas" = "elci/schemas"
