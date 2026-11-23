@@ -42,8 +42,21 @@ Elçi focuses on three things existing attempts leave out:
 - A verifying inbox (schema, signature, delegation, replay) and a small HTTP transport
 - Need-to-know disclosure levels
 - Email fallback for people without an agent, with best-effort reply parsing
+- Signed human approval receipts required for binding steps
+- An MCP server (`elci-mcp`) so Claude Code or any MCP host can use Elçi
 
 Try the demo: `pip install -e python && python examples/three_agents.py --yes`
+
+## Use it from Claude Code (MCP)
+
+```bash
+pip install 'elci[mcp]'
+claude mcp add elci -- elci-mcp
+```
+
+Tools: `discover`, `route`, `send_message`, `draft_email`, `read_email_reply`, `redact_availability`.
+Sending needs `ELCI_AGENT_ID`, `ELCI_PRINCIPAL_DOMAIN`, `ELCI_AGENT_KEY_HEX` and `ELCI_DELEGATION`
+in the environment; keep the key in a secret store. `accept` is refused without a signed approval receipt.
 
 ## Quick look
 
