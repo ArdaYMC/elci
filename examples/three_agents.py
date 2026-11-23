@@ -27,10 +27,10 @@ from elci import (
     DisclosurePolicy,
     Inbox,
     compose_fallback_email,
+    issue_approval,
     issue_delegation,
     parse_reply,
     public_jwk,
-    sign_message,
 )
 from elci.inbox import send, serve
 
@@ -65,12 +65,12 @@ def principal(domain: str, name: str, agents: dict[str, tuple[tuple[str, ...], t
     return card, handles, pkey
 
 
-def approve(principal_key, what: str, auto_yes: bool) -> dict:
+def approve(principal_key, what: str, auto_yes: bool, *, thread: str, intent: str) -> dict:
     """Ask the human. In the demo the answer is 'yes' when auto_yes is set."""
     print(f"   [ONAY / APPROVAL] Arda'ya soruluyor: {what}")
     if not auto_yes and input("   Onaylıyor musun? (e/h) ").strip().lower() not in {"e", "evet", "y", "yes"}:
         raise SystemExit("Arda onaylamadı, işlem durdu.")
-    receipt = sign_message({"approved": what, "at": int(time.time())}, principal_key)
+    receipt = issue_approval(principal_key, principal="arda.example", thread=thread, intent=intent, summary=what)
     print("   [ONAY] verildi, imzalı makbuz eklendi")
     return receipt
 
@@ -129,10 +129,11 @@ def main(auto_yes: bool = True) -> dict:
             send(answer, local["brand.example"], allow_insecure_localhost=True)
             log["answer"] = answer
             if free:
-                receipt = approve(arda_pkey, f"Brand Co. ile iş birliği, {free[0]}", auto_yes)
+                receipt = approve(arda_pkey, f"Brand Co. ile iş birliği, {free[0]}", auto_yes,
+                                  thread=message["thread"], intent="accept")
                 accept = arda["devbyarda"].message(to=message["from"], topic="collaboration", intent="accept",
-                                                    body={"slot": free[0], "approval": receipt},
-                                                    thread=message["thread"])
+                                                    body={"slot": free[0]}, thread=message["thread"],
+                                                    approval=receipt)
                 send(accept, local["brand.example"], allow_insecure_localhost=True)
                 log["accept"] = accept
             return {"received": True}
@@ -162,7 +163,8 @@ def main(auto_yes: bool = True) -> dict:
         parsed = parse_reply(bytes(reply))
         print(f"6) Cevap ayrıştırıldı: seçenek={parsed.choice}, thread={parsed.thread}, onay gerekli={parsed.needs_confirmation}")
         chosen = ask["body"]["slots"][parsed.choice - 1]
-        log["supplier_receipt"] = approve(arda_pkey, f"Tedarikçi görüşmesi {chosen}", auto_yes)
+        log["supplier_receipt"] = approve(arda_pkey, f"Tedarikçi görüşmesi {chosen}", auto_yes,
+                                          thread=ask["thread"], intent="accept")
         log["supplier_slot"] = chosen
         print("7) Jarvy takvime işledi. Bitti.")
         return log

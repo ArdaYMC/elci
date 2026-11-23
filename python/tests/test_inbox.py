@@ -71,3 +71,43 @@ def test_http_round_trip(pair):
 def test_send_refuses_plain_http():
     with pytest.raises(ValueError):
         send({}, "http://example.com/elci")
+
+
+def _accept_pair():
+    from conftest import make_principal
+    a_card, a_agent, _ = make_principal("a.example", "x", ("collaboration",), ("propose",))
+    b_card, b_agent, b_pkey = make_principal("b.example", "y", ("collaboration",), ("accept",))
+    return {"a.example": a_card, "b.example": b_card}, a_agent, b_agent, b_pkey
+
+
+def test_accept_without_approval_is_rejected():
+    cards, a, b, _ = _accept_pair()
+    msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001")
+    with pytest.raises(Rejected, match="approval"):
+        inbox_for(cards, "a.example").accept(msg)
+
+
+def test_accept_with_valid_approval_is_accepted():
+    from elci import issue_approval
+    cards, a, b, b_pkey = _accept_pair()
+    receipt = issue_approval(b_pkey, principal="b.example", thread="thr_00000001", intent="accept", summary="ok")
+    msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001", approval=receipt)
+    assert inbox_for(cards, "a.example").accept(msg)
+
+
+def test_approval_for_another_thread_is_rejected():
+    from elci import issue_approval
+    cards, a, b, b_pkey = _accept_pair()
+    receipt = issue_approval(b_pkey, principal="b.example", thread="thr_other0001", intent="accept", summary="ok")
+    msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001", approval=receipt)
+    with pytest.raises(Rejected):
+        inbox_for(cards, "a.example").accept(msg)
+
+
+def test_approval_signed_by_agent_not_principal_is_rejected():
+    from elci import issue_approval
+    cards, a, b, _ = _accept_pair()
+    receipt = issue_approval(b.key, principal="b.example", thread="thr_00000001", intent="accept", summary="ok")
+    msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001", approval=receipt)
+    with pytest.raises(Rejected):
+        inbox_for(cards, "a.example").accept(msg)

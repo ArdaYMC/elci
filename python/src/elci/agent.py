@@ -21,7 +21,7 @@ class Agent:
     delegation: str  # token issued by the principal
 
     def message(self, *, to: str, topic: str, intent: str, body: dict, thread: str | None = None,
-                created_at: str | None = None) -> dict:
+                created_at: str | None = None, approval: dict | None = None) -> dict:
         msg = {
             "protocol_version": PROTOCOL_VERSION,
             "from": self.id,
@@ -34,4 +34,6 @@ class Agent:
             "body": body,
             "delegation": self.delegation,
         }
+        if approval is not None:
+            msg["approval"] = approval
         return sign_message(msg, self.key)

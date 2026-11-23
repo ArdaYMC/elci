@@ -128,3 +128,31 @@ def verify_delegation(token: str, principal_keys: Iterable[dict], *, agent: str,
         raise SignatureError(f"delegation does not cover intent {intent!r}")
     return Delegation(claims["iss"], claims["sub"], tuple(claims["topics"]),
                       tuple(claims["intents"]), claims["exp"])
+
+
+# --- human approval receipts ------------------------------------------------------
+
+BINDING_INTENTS = frozenset({"accept"})
+
+
+def issue_approval(principal_key: Ed25519PrivateKey, *, principal: str, thread: str, intent: str,
+                   summary: str, now: int | None = None) -> dict:
+    """A receipt, signed by the principal's key, that a human approved one binding step."""
+    receipt = {
+        "type": "elci-approval",
+        "principal": principal,
+        "thread": thread,
+        "intent": intent,
+        "summary": summary,
+        "approved_at": int(time.time()) if now is None else now,
+    }
+    return sign_message(receipt, principal_key)
+
+
+def verify_approval(receipt: dict, principal_keys: Iterable[dict], *, principal: str, thread: str,
+                    intent: str) -> None:
+    if not isinstance(receipt, dict) or receipt.get("type") != "elci-approval":
+        raise SignatureError("missing or malformed approval receipt")
+    verify_message(receipt, principal_keys)
+    if (receipt.get("principal"), receipt.get("thread"), receipt.get("intent")) != (principal, thread, intent):
+        raise SignatureError("approval receipt is for a different principal, thread or intent")

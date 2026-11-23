@@ -5,9 +5,11 @@ from .card import AgentCard, AgentEntry, CardError, well_known_url
 from .crypto import (
     Delegation,
     SignatureError,
+    issue_approval,
     issue_delegation,
     public_jwk,
     sign_message,
+    verify_approval,
     verify_delegation,
     verify_message,
 )
@@ -26,9 +28,11 @@ __all__ = [
     "CardError",
     "Delegation",
     "SignatureError",
+    "issue_approval",
     "issue_delegation",
     "public_jwk",
     "sign_message",
+    "verify_approval",
     "verify_delegation",
     "verify_message",
     "DisclosurePolicy",

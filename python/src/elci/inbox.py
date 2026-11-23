@@ -13,7 +13,7 @@ import jsonschema
 
 from . import _schemas
 from .card import AgentCard
-from .crypto import SignatureError, verify_delegation, verify_message
+from .crypto import BINDING_INTENTS, SignatureError, verify_approval, verify_delegation, verify_message
 
 CardResolver = Callable[[str], AgentCard]  # domain -> card
 KeyFetcher = Callable[[str], list[dict]]  # jwks_uri -> keys
@@ -79,6 +79,10 @@ class Inbox:
             verify_delegation(message["delegation"], sender_card.principal_keys, agent=sender.id,
                               topic=message["topic"], intent=message["intent"],
                               now=self.now() if self.now else None)
+            if message["intent"] in BINDING_INTENTS:
+                verify_approval(message.get("approval"), sender_card.principal_keys,
+                                principal=message["on_behalf_of"], thread=message["thread"],
+                                intent=message["intent"])
         except SignatureError as exc:
             raise Rejected(str(exc), 401) from exc
 

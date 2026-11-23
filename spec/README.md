@@ -1,4 +1,4 @@
-# Elçi protocol — draft 0.0.3
+# Elçi protocol — draft 0.0.4
 
 Status: working draft. Nothing here is stable. Key words MUST, SHOULD, MAY follow RFC 2119.
 
@@ -67,7 +67,18 @@ An agent proves it speaks for its principal with a **delegation token**: a compa
 
 Messages carry it in a `delegation` member. A receiver MUST reject a message whose token is expired,
 issued to another agent, or does not list the message's `topic` and `intent`.
-Binding actions (`accept` of anything that commits time or money) MUST also carry a human approval receipt.
+Binding intents (in 0.0.4: `accept`) MUST also carry an `approval` member: a **human approval
+receipt** signed (like a message, §3) by a key in the principal's `jwks`, never by the agent's key:
+
+```json
+{"type": "elci-approval", "principal": "arda.example", "thread": "thr_…", "intent": "accept",
+ "summary": "Collaboration with Brand Co., 2026-11-27 11:00", "approved_at": 1795000000,
+ "signature": "…"}
+```
+
+A receiver MUST reject a binding message whose receipt is missing, does not verify against the
+principal's keys, or names a different principal, thread or intent. This makes "a human said yes"
+checkable by the other side, not just a promise.
 
 ## 5. Need-to-know disclosure
 
