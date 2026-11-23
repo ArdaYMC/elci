@@ -1,4 +1,4 @@
-# Elçi protocol — draft 0.0.2
+# Elçi protocol — draft 0.0.3
 
 Status: working draft. Nothing here is stable. Key words MUST, SHOULD, MAY follow RFC 2119.
 
@@ -37,7 +37,12 @@ How this maps to the Personal Agent Protocol and A2A is in [`../docs/compatibili
 
 Every message is a JSON envelope (schema: [`schemas/message.schema.json`](schemas/message.schema.json)) with
 `protocol_version`, `from`, `to`, `on_behalf_of`, `topic`, `intent`, `body`, `thread`, `created_at`, and a detached
-signature over the canonical JSON. Intents in 0.0.2:
+signature over the canonical JSON.
+
+**Signing (0.0.3).** `signature` is the base64url (no padding) Ed25519 signature over the canonical
+JSON of the message without the `signature` member. Canonical JSON = keys sorted, no insignificant
+whitespace, UTF-8, no floats (a subset of RFC 8785). The receiver verifies it against the sending
+agent's `jwks` / `jwks_uri` from the principal card. Vectors: [`vectors/signing.json`](vectors/signing.json). Intents in 0.0.2:
 
 | Intent | Meaning |
 | --- | --- |
@@ -49,9 +54,20 @@ signature over the canonical JSON. Intents in 0.0.2:
 
 ## 4. Mandate and delegation
 
-An agent proves it speaks for its principal with a **delegation token** signed by a key listed in the
-principal's card, naming the agent, the allowed topics and intents, and an expiry. Binding actions
-(`accept` of anything that commits time or money) MUST carry a human approval receipt.
+An agent proves it speaks for its principal with a **delegation token**: a compact JWS
+(`alg: EdDSA`, `typ: elci-delegation+jwt`) signed by the principal's key, with claims
+
+| Claim | Meaning |
+| --- | --- |
+| `iss` | the principal's domain |
+| `sub` | the agent's `id` URL |
+| `topics` | topics the agent may act on |
+| `intents` | intents the agent may send |
+| `iat`, `exp` | issued-at and expiry, unix seconds |
+
+Messages carry it in a `delegation` member. A receiver MUST reject a message whose token is expired,
+issued to another agent, or does not list the message's `topic` and `intent`.
+Binding actions (`accept` of anything that commits time or money) MUST also carry a human approval receipt.
 
 ## 5. Need-to-know disclosure
 
