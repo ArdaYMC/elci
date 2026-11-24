@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" role="img" aria-label="Elçi: an open protocol for personal AI agents to talk to other people's agents, safely">
+<style>
+  :root{--bg:#FBFAF7;--card:#FFFFFF;--ink:#14213D;--muted:#5B6475;--line:#D9D4C7;--accent:#D97A1E;--accent-soft:#FBEBD9;--ok:#1F7A57;--ok-soft:#DDF1E7;--priv:#6B5BD6;--priv-soft:#ECE9FB}
+  @media (prefers-color-scheme: dark){:root{--bg:#0D1117;--card:#161B22;--ink:#E6EDF3;--muted:#9DA7B3;--line:#30363D;--accent:#F2A541;--accent-soft:#3A2A14;--ok:#3FB950;--ok-soft:#12261B;--priv:#A898FF;--priv-soft:#221D3D}}
+  text{font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .muted{fill:var(--muted)}
+</style>
+  <rect x="1" y="1" width="1278" height="358" rx="24" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+  <g transform="translate(36 0)">
+  <g opacity=".55" stroke="var(--line)" stroke-width="2" fill="none">
+    <path d="M1000 70 C1080 70 1100 180 1180 180"/><path d="M1000 290 C1080 290 1100 180 1180 180"/>
+    <path d="M900 180 L1000 70"/><path d="M900 180 L1000 290"/>
+  </g>
+  <g>
+    <circle cx="900" cy="180" r="30" fill="var(--priv-soft)" stroke="var(--priv)" stroke-width="2.5"/>
+    <text x="900" y="186" text-anchor="middle" font-size="16" font-weight="700" fill="var(--priv)" style="fill:var(--priv)">you</text>
+    <circle cx="1000" cy="70" r="22" fill="var(--card)" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="1000" cy="290" r="22" fill="var(--card)" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="1180" cy="180" r="30" fill="var(--ok-soft)" stroke="var(--ok)" stroke-width="2.5"/>
+    <text x="1180" y="186" text-anchor="middle" font-size="16" font-weight="700" style="fill:var(--ok)">them</text>
+    <path d="M992 70 l5 5 l10 -10" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M992 290 l5 5 l10 -10" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  </g>
+  <g transform="translate(72 86) scale(1.1)">
+    <circle cx="64" cy="64" r="60" fill="var(--accent)"/>
+    <circle cx="64" cy="64" r="51" fill="none" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="2" stroke-dasharray="3 5"/>
+    <rect x="34" y="44" width="60" height="42" rx="6" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M37 48 L64 68 L91 48" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="64" cy="86" r="9" fill="#FFFFFF"/>
+    <path d="M60 86 l3 3 l6 -6" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="250" y="150" font-size="84" font-weight="800" letter-spacing="-2">Elçi</text>
+  <text x="456" y="150" font-size="22" class="muted" font-style="italic">/el·chee/ · Turkish for “envoy”</text>
+  <text x="252" y="200" font-size="27" font-weight="600">Your agent talks to their agent. Safely.</text>
+  <text x="252" y="236" font-size="19" class="muted">An open protocol for person-to-person AI agents, compatible with PAP and A2A.</text>
+  <g font-size="15" font-weight="600">
+    <rect x="252" y="264" width="160" height="34" rx="17" fill="var(--accent-soft)"/><text x="332" y="286" text-anchor="middle">Signed messages</text>
+    <rect x="422" y="264" width="140" height="34" rx="17" fill="var(--accent-soft)"/><text x="492" y="286" text-anchor="middle">Need-to-know</text>
+    <rect x="572" y="264" width="160" height="34" rx="17" fill="var(--accent-soft)"/><text x="652" y="286" text-anchor="middle">Human approval</text>
+    <rect x="742" y="264" width="140" height="34" rx="17" fill="var(--accent-soft)"/><text x="812" y="286" text-anchor="middle">Email fallback</text>
+  </g>
+</svg>

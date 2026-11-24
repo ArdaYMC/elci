@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640" role="img" aria-label="Elçi architecture: one person with a private coordinator and two public agents talks to a company agent over signed HTTPS and to a person without an agent by email">
+<style>
+  :root{--bg:#FBFAF7;--card:#FFFFFF;--ink:#14213D;--muted:#5B6475;--line:#D9D4C7;--accent:#D97A1E;--accent-soft:#FBEBD9;--ok:#1F7A57;--ok-soft:#DDF1E7;--priv:#6B5BD6;--priv-soft:#ECE9FB}
+  @media (prefers-color-scheme: dark){:root{--bg:#0D1117;--card:#161B22;--ink:#E6EDF3;--muted:#9DA7B3;--line:#30363D;--accent:#F2A541;--accent-soft:#3A2A14;--ok:#3FB950;--ok-soft:#12261B;--priv:#A898FF;--priv-soft:#221D3D}}
+  text{font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .muted{fill:var(--muted)}
+</style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--muted)"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--ok)"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--accent)"/></marker>
+  </defs>
+  <rect x="1" y="1" width="1198" height="638" rx="20" style="fill:var(--bg);stroke:var(--line)" stroke-width="2"/>
+
+  <!-- the person -->
+  <rect x="32" y="32" width="640" height="576" rx="18" style="fill:var(--card);stroke:var(--line)" stroke-width="2"/>
+  <text x="60" y="72" font-size="22" font-weight="800">Arda</text>
+  <text x="128" y="72" font-size="16" class="muted">principal · arda.example</text>
+
+  <rect x="60" y="96" width="584" height="78" rx="12" style="fill:var(--accent-soft)"/>
+  <text x="80" y="128" font-size="15" font-weight="700" class="mono">arda.example/.well-known/elci.json</text>
+  <text x="80" y="154" font-size="14" class="muted">Public card: lists devbyarda and acme-work with their keys. Jarvy is not in it.</text>
+
+  <rect x="60" y="268" width="230" height="176" rx="14" style="fill:var(--priv-soft);stroke:var(--priv)" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="80" y="306" font-size="20" font-weight="800" style="fill:var(--priv)">Jarvy</text>
+  <text x="80" y="334" font-size="14">private coordinator</text>
+  <text x="80" y="356" font-size="14">full calendar and memory</text>
+  <text x="80" y="392" font-size="13" class="muted">never reachable from outside;</text>
+  <text x="80" y="412" font-size="13" class="muted">answers its own agents only</text>
+  <text x="80" y="432" font-size="13" class="muted">at the level each may see</text>
+
+  <rect x="380" y="226" width="264" height="110" rx="14" style="fill:var(--card);stroke:var(--accent)" stroke-width="2.5"/>
+  <text x="400" y="262" font-size="20" font-weight="800">devbyarda</text>
+  <text x="400" y="288" font-size="14">creator agent</text>
+  <text x="400" y="314" font-size="13" class="muted mono">topics: collaboration</text>
+
+  <rect x="380" y="380" width="264" height="110" rx="14" style="fill:var(--card);stroke:var(--accent)" stroke-width="2.5"/>
+  <text x="400" y="416" font-size="20" font-weight="800">acme-work</text>
+  <text x="400" y="442" font-size="14">work agent (Acme Elektronik)</text>
+  <text x="400" y="468" font-size="13" class="muted mono">topics: scheduling</text>
+
+  <path d="M290 330 C330 330 340 281 376 281" fill="none" style="stroke:var(--priv)" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M290 382 C330 382 340 435 376 435" fill="none" style="stroke:var(--priv)" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="60" y="520" width="584" height="64" rx="12" style="fill:var(--ok-soft)"/>
+  <circle cx="90" cy="552" r="13" style="fill:var(--ok)"/>
+  <path d="M84 552 l4 4 l8 -8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="116" y="546" font-size="15" font-weight="700">Binding steps need Arda</text>
+  <text x="116" y="568" font-size="13" class="muted">An accept carries Arda's signed approval receipt for that exact body.</text>
+
+  <!-- counterparties -->
+  <rect x="860" y="226" width="300" height="110" rx="14" style="fill:var(--ok-soft);stroke:var(--ok)" stroke-width="2.5"/>
+  <text x="880" y="262" font-size="20" font-weight="800">Brand Co. agent</text>
+  <text x="880" y="288" font-size="14">brand.example</text>
+  <text x="880" y="314" font-size="13" class="muted">has its own card and keys</text>
+
+  <rect x="860" y="380" width="300" height="110" rx="14" style="fill:var(--card);stroke:var(--line)" stroke-width="2.5" stroke-dasharray="7 6"/>
+  <text x="880" y="416" font-size="20" font-weight="800">Supplier</text>
+  <text x="880" y="442" font-size="14">no agent at all</text>
+  <text x="880" y="468" font-size="13" class="muted">reads and answers plain email</text>
+
+  <path d="M648 268 L856 268" fill="none" style="stroke:var(--ok)" stroke-width="2.5" marker-start="url(#g)" marker-end="url(#g)"/>
+  <text x="752" y="256" text-anchor="middle" font-size="13" font-weight="700">HTTPS · Ed25519</text>
+  <text x="752" y="292" text-anchor="middle" font-size="12" class="muted">signed + delegated</text>
+  <text x="752" y="312" text-anchor="middle" font-size="12" class="muted">busy/free, never why</text>
+
+  <path d="M648 435 L856 435" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-dasharray="8 6" marker-start="url(#o)" marker-end="url(#o)"/>
+  <text x="752" y="423" text-anchor="middle" font-size="13" font-weight="700">email fallback</text>
+  <text x="752" y="459" text-anchor="middle" font-size="12" class="muted mono">elci-thread: thr_…</text>
+  <text x="752" y="479" text-anchor="middle" font-size="12" class="muted">reply parsed, then confirmed</text>
+
+  <text x="1010" y="72" text-anchor="middle" font-size="16" class="muted">the other side</text>
+  <text x="1010" y="574" text-anchor="middle" font-size="13" class="muted">Cards: /.well-known/elci.json</text>
+  <text x="1010" y="594" text-anchor="middle" font-size="13" class="muted">PAP and A2A cards can live beside it</text>
+</svg>

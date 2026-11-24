@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 823" width="1000" height="823" role="img" aria-label="Terminal recording of the Elçi three-agent demo">
+<style>
+  .bg{fill:#0D1117} .bar{fill:#161B22}
+  text{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;fill:#C9D1D9}
+  .cmd{fill:#F2A541;font-weight:700} .step{fill:#E6EDF3;font-weight:700} .ok{fill:#3FB950} .dim{fill:#8B949E} .out{fill:#C9D1D9}
+  .title{font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:13px;fill:#8B949E}
+  @media (prefers-reduced-motion: reduce){.l{animation:none!important;opacity:1}}
+    @keyframes k0{0%,5.06%{opacity:0}5.46%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k1{0%,9.81%{opacity:0}10.21%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k2{0%,14.55%{opacity:0}14.95%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k3{0%,19.30%{opacity:0}19.70%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k4{0%,20.54%{opacity:0}20.94%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k5{0%,21.79%{opacity:0}22.19%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k6{0%,23.04%{opacity:0}23.44%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k7{0%,24.28%{opacity:0}24.68%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k8{0%,29.03%{opacity:0}29.43%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k9{0%,33.77%{opacity:0}34.17%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k10{0%,38.52%{opacity:0}38.92%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k11{0%,39.77%{opacity:0}40.17%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k12{0%,41.01%{opacity:0}41.41%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k13{0%,42.26%{opacity:0}42.66%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k14{0%,43.50%{opacity:0}43.90%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k15{0%,44.75%{opacity:0}45.15%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k16{0%,45.99%{opacity:0}46.39%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k17{0%,47.24%{opacity:0}47.64%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k18{0%,48.48%{opacity:0}48.88%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k19{0%,49.73%{opacity:0}50.13%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k20{0%,50.97%{opacity:0}51.37%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k21{0%,52.22%{opacity:0}52.62%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k22{0%,53.46%{opacity:0}53.86%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k23{0%,54.71%{opacity:0}55.11%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k24{0%,55.95%{opacity:0}56.35%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k25{0%,57.20%{opacity:0}57.60%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k26{0%,58.44%{opacity:0}58.84%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k27{0%,59.69%{opacity:0}60.09%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k28{0%,60.93%{opacity:0}61.33%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k29{0%,62.18%{opacity:0}62.58%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k30{0%,63.42%{opacity:0}63.82%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k31{0%,68.17%{opacity:0}68.57%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k32{0%,69.42%{opacity:0}69.82%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k33{0%,70.66%{opacity:0}71.06%,97%{opacity:1}100%{opacity:0}}
+  @keyframes k34{0%,75.41%{opacity:0}75.81%,97%{opacity:1}100%{opacity:0}}
+</style>
+<rect class="bg" width="1000" height="823" rx="14"/>
+<path class="bar" d="M0 14 a14 14 0 0 1 14 -14 h972 a14 14 0 0 1 14 14 v22 h-1000 z"/>
+<circle cx="22" cy="18" r="6" fill="#FF5F57"/><circle cx="42" cy="18" r="6" fill="#FEBC2E"/><circle cx="62" cy="18" r="6" fill="#28C840"/>
+<text class="title" x="500.0" y="23" text-anchor="middle">elçi · three agents, one person</text>
+<text class="l cmd" x="24" y="64" xml:space="preserve" style="animation:k0 25.7s linear infinite">$ python examples/three_agents.py --yes</text>
+<text class="l step" x="24" y="85" xml:space="preserve" style="animation:k1 25.7s linear infinite">1) Marka ajanı devbyarda&#x27;ya iş birliği teklif ediyor (HTTP, imzalı, yetki belgeli)</text>
+<text class="l step" x="24" y="106" xml:space="preserve" style="animation:k2 25.7s linear infinite">2) devbyarda teklifi aldı, Jarvy&#x27;ye müsaitlik soruyor: [&#x27;2026-11-26T14:00&#x27;, &#x27;2026-11-27T11:00&#x27;]</text>
+<text class="l step" x="24" y="127" xml:space="preserve" style="animation:k3 25.7s linear infinite">3) Jarvy tam kaydı verdi; devbyarda yalnızca şunu paylaşıyor: [{&#x27;slot&#x27;: &#x27;2026-11-26T14:00&#x27;, &#x27;busy&#x27;:</text>
+<text class="l out" x="24" y="148" xml:space="preserve" style="animation:k4 25.7s linear infinite">   True}, {&#x27;slot&#x27;: &#x27;2026-11-27T11:00&#x27;, &#x27;busy&#x27;: False}]</text>
+<text class="l ok" x="24" y="169" xml:space="preserve" style="animation:k5 25.7s linear infinite">   [ONAY / APPROVAL] Arda&#x27;ya soruluyor: Brand Co. ile iş birliği, 2026-11-27T11:00</text>
+<text class="l ok" x="24" y="190" xml:space="preserve" style="animation:k6 25.7s linear infinite">   [ONAY] verildi, imzalı makbuz eklendi</text>
+<text class="l dim" x="24" y="211" xml:space="preserve" style="animation:k7 25.7s linear infinite">   teslim durumu: 202</text>
+<text class="l step" x="24" y="232" xml:space="preserve" style="animation:k8 25.7s linear infinite">4) Marka tarafına ulaşan mesajlar: [&#x27;answer&#x27;, &#x27;accept&#x27;]</text>
+<text class="l step" x="24" y="253" xml:space="preserve" style="animation:k9 25.7s linear infinite"></text>
+<text class="l step" x="24" y="274" xml:space="preserve" style="animation:k10 25.7s linear infinite">5) acme-work, ajanı olmayan tedarikçiye e-postayla ulaşıyor</text>
+<text class="l dim" x="24" y="295" xml:space="preserve" style="animation:k11 25.7s linear infinite">   --- giden e-posta ---</text>
+<text class="l out" x="24" y="316" xml:space="preserve" style="animation:k12 25.7s linear infinite">   Merhaba / Hello,</text>
+<text class="l out" x="24" y="337" xml:space="preserve" style="animation:k13 25.7s linear infinite">   </text>
+<text class="l out" x="24" y="358" xml:space="preserve" style="animation:k14 25.7s linear infinite">   Acme Elektronik sizinle şu konuda iletişime geçmek istiyor / would like to reach you about:</text>
+<text class="l out" x="24" y="379" xml:space="preserve" style="animation:k15 25.7s linear infinite">      scheduling.</text>
+<text class="l out" x="24" y="400" xml:space="preserve" style="animation:k16 25.7s linear infinite">   </text>
+<text class="l out" x="24" y="421" xml:space="preserve" style="animation:k17 25.7s linear infinite">   Aralık siparişi için kısa bir görüşme</text>
+<text class="l out" x="24" y="442" xml:space="preserve" style="animation:k18 25.7s linear infinite">   </text>
+<text class="l out" x="24" y="463" xml:space="preserve" style="animation:k19 25.7s linear infinite">   Seçenekler / Options:</text>
+<text class="l out" x="24" y="484" xml:space="preserve" style="animation:k20 25.7s linear infinite">     1. 2026-12-01 10:00</text>
+<text class="l out" x="24" y="505" xml:space="preserve" style="animation:k21 25.7s linear infinite">     2. 2026-12-02 15:00</text>
+<text class="l out" x="24" y="526" xml:space="preserve" style="animation:k22 25.7s linear infinite">   </text>
+<text class="l out" x="24" y="547" xml:space="preserve" style="animation:k23 25.7s linear infinite">   Uygun olanın numarasıyla cevap verin, ya da &quot;hayır&quot; yazın. / Reply with the number that suits</text>
+<text class="l out" x="24" y="568" xml:space="preserve" style="animation:k24 25.7s linear infinite">      you, or &quot;no&quot;.</text>
+<text class="l out" x="24" y="589" xml:space="preserve" style="animation:k25 25.7s linear infinite">   </text>
+<text class="l out" x="24" y="610" xml:space="preserve" style="animation:k26 25.7s linear infinite">   --</text>
+<text class="l out" x="24" y="631" xml:space="preserve" style="animation:k27 25.7s linear infinite">   Bu e-postayı Acme Elektronik adına bir asistan gönderdi; cevabınızı Acme Elektronik onaylayacak.</text>
+<text class="l out" x="24" y="652" xml:space="preserve" style="animation:k28 25.7s linear infinite">   Sent by an assistant on behalf of Acme Elektronik; Acme Elektronik confirms every answer.</text>
+<text class="l out" x="24" y="673" xml:space="preserve" style="animation:k29 25.7s linear infinite">   elci-thread: thr_44dfd7273b19</text>
+<text class="l out" x="24" y="694" xml:space="preserve" style="animation:k30 25.7s linear infinite">   </text>
+<text class="l step" x="24" y="715" xml:space="preserve" style="animation:k31 25.7s linear infinite">6) Cevap ayrıştırıldı: seçenek=2, thread=thr_44dfd7273b19, onay gerekli=True</text>
+<text class="l ok" x="24" y="736" xml:space="preserve" style="animation:k32 25.7s linear infinite">   [ONAY / APPROVAL] Arda&#x27;ya soruluyor: Tedarikçi görüşmesi 2026-12-02 15:00</text>
+<text class="l ok" x="24" y="757" xml:space="preserve" style="animation:k33 25.7s linear infinite">   [ONAY] verildi, imzalı makbuz eklendi</text>
+<text class="l step" x="24" y="778" xml:space="preserve" style="animation:k34 25.7s linear infinite">7) Jarvy takvime işledi. Bitti.</text>
+</svg>
