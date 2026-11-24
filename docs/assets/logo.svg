@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="Elçi logo">
+<style>
+  :root{--bg:#FBFAF7;--card:#FFFFFF;--ink:#14213D;--muted:#5B6475;--line:#D9D4C7;--accent:#D97A1E;--accent-soft:#FBEBD9;--ok:#1F7A57;--ok-soft:#DDF1E7;--priv:#6B5BD6;--priv-soft:#ECE9FB}
+  @media (prefers-color-scheme: dark){:root{--bg:#0D1117;--card:#161B22;--ink:#E6EDF3;--muted:#9DA7B3;--line:#30363D;--accent:#F2A541;--accent-soft:#3A2A14;--ok:#3FB950;--ok-soft:#12261B;--priv:#A898FF;--priv-soft:#221D3D}}
+  text{font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .muted{fill:var(--muted)}
+</style>
+  <circle cx="64" cy="64" r="60" fill="var(--accent)"/>
+  <circle cx="64" cy="64" r="51" fill="none" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="2" stroke-dasharray="3 5"/>
+  <rect x="34" y="44" width="60" height="42" rx="6" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M37 48 L64 68 L91 48" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="64" cy="86" r="9" fill="#FFFFFF"/>
+  <path d="M60 86 l3 3 l6 -6" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

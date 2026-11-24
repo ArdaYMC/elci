@@ -1,3 +1,15 @@
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="Elçi: your agent talks to their agent, safely" width="100%">
+</p>
+
+<p align="center">
+  <a href="https://github.com/ArdaYMC/elci/actions/workflows/test.yml"><img src="https://github.com/ArdaYMC/elci/actions/workflows/test.yml/badge.svg" alt="tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/spec-draft%200.0.x-orange" alt="spec draft 0.0.x">
+  <img src="https://img.shields.io/badge/python-3.10%2B-3776AB" alt="Python 3.10+">
+  <a href="https://github.com/ArdaYMC/elci/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/ArdaYMC/elci/good%20first%20issue?label=good%20first%20issues&color=7057ff" alt="good first issues"></a>
+</p>
+
 # Elçi
 
 **An open protocol for personal AI agents to talk to other people's agents — safely.**
@@ -26,6 +38,18 @@ Elçi focuses on three things existing attempts leave out:
 3. **Works when the other side has no agent.** If no agent card is found, Elçi falls back to a
    plain, human-readable email and parses the reply.
 
+## How it works
+
+One person, several agents. Only the public ones are listed in the person's card; the private
+coordinator that holds everything never talks to the outside world.
+
+<p align="center"><img src="docs/assets/architecture.svg" alt="Architecture: Arda's private coordinator Jarvy feeds two public agents, devbyarda and acme-work; devbyarda talks to a brand's agent over signed HTTPS, acme-work reaches a supplier without an agent by email" width="100%"></p>
+
+A typical exchange: the other side proposes, your agent answers at the level its mandate allows,
+and nothing binding happens until you say yes, in a way the other side can verify.
+
+<p align="center"><img src="docs/assets/flow.svg" alt="Message flow: propose, availability lookup, redaction to busy/free, answer, human approval, accept with a signed receipt" width="100%"></p>
+
 ## Repository layout
 
 | Path | What |
@@ -46,6 +70,11 @@ Elçi focuses on three things existing attempts leave out:
 - An MCP server (`elci-mcp`) so Claude Code or any MCP host can use Elçi
 
 Try the demo: `pip install -e python && python examples/three_agents.py --yes`
+
+<p align="center"><img src="docs/assets/demo.svg" alt="Terminal replay of the three-agent demo" width="100%"></p>
+
+<sub>The demo prints in Turkish, the language of its fictional owner. Regenerate this recording with
+`python docs/assets/render_demo.py`.</sub>
 
 ## Use it from Claude Code (MCP)
 
