@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 import jsonschema
 
 from . import _schemas
+from ._version import __version__
 from .card import AgentCard
 from .crypto import (
     BINDING_INTENTS,
@@ -64,6 +65,9 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 _opener = urllib.request.build_opener(_NoRedirect)
+# Some hosts (Cloudflare among them) refuse the default "Python-urllib" agent as a bot.
+USER_AGENT = f"elci/{__version__} (+https://github.com/ArdaYMC/elci)"
+_opener.addheaders = [("User-Agent", USER_AGENT)]
 
 
 def _fetch_json(url: str) -> object:
@@ -291,7 +295,8 @@ def send(message: dict, endpoint: str, *, allow_insecure_localhost: bool = False
     if parts.scheme != "https" and not (allow_insecure_localhost and local):
         raise ValueError("Elçi endpoints must use https")
     req = urllib.request.Request(endpoint, data=json.dumps(message).encode("utf-8"),
-                                 headers={"Content-Type": "application/json"}, method="POST")
+                                 headers={"Content-Type": "application/json", "User-Agent": USER_AGENT},
+                                 method="POST")
     try:
         with _opener.open(req, timeout=10) as resp:  # noqa: S310 - scheme checked above
             return resp.status, json.loads(resp.read(MAX_DOCUMENT_BYTES + 1)[:MAX_DOCUMENT_BYTES] or b"{}")

@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.1
+
+- Send an `elci/<version>` User-Agent on every outgoing request (card fetch, message send, relay
+  calls). Cloudflare refused the default `Python-urllib` agent with 403, so 0.2.0 could not publish
+  a card to or pull from the Cloudflare relay.
+
+## 0.2.0
 
 Spec draft 0.0.6.
 

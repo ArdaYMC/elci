@@ -32,6 +32,9 @@ elci relay
 elci check elci.<your-subdomain>.workers.dev
 ```
 
+Behind a company proxy, Node may fail with "fetch failed". Let it use the system certificates first:
+`export NODE_USE_SYSTEM_CA=1` (PowerShell: `$env:NODE_USE_SYSTEM_CA = '1'`).
+
 Then, whenever you want your messages: `elci pull` (your agents see them through `elci-mcp`).
 
 ## Endpoints
