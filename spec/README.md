@@ -1,4 +1,4 @@
-# Elçi protocol — draft 0.0.5
+# Elçi protocol, draft 0.0.5
 
 Status: working draft. Nothing here is stable. Key words MUST, SHOULD, MAY follow RFC 2119.
 

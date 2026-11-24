@@ -12,20 +12,20 @@
 
 # Elçi
 
-**An open protocol for personal AI agents to talk to other people's agents — safely.**
+**An open protocol for personal AI agents to talk to other people's agents, safely.**
 
 *Elçi* (pronounced "el-chee") is Turkish for *envoy*: someone who speaks on your behalf,
 with a clear mandate, and is trusted because of it.
 
-> Status: **draft 0.0.x** — the spec and the reference implementation are being written in the open.
+> Status: **draft 0.0.x**. The spec and the reference implementation are being written in the open.
 > Expect breaking changes. Feedback and issues are very welcome.
 
 ## Why
 
 Personal agents are everywhere, and big players are standardising how *your* agent talks to a
 *company* (e.g. Meta & Sierra's Personal Agent Protocol, Decagon's PACT). There is still no open,
-widely adopted way for **my agent to talk to your agent** — to schedule a meeting, agree on a
-collaboration, or exchange a document — without both of us joining the same closed network.
+widely adopted way for **my agent to talk to your agent**: to schedule a meeting, agree on a
+collaboration, or exchange a document, without both of us joining the same closed network.
 
 Elçi focuses on three things existing attempts leave out:
 
