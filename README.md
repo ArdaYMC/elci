@@ -6,7 +6,7 @@
   <a href="https://github.com/ArdaYMC/elci/actions/workflows/test.yml"><img src="https://github.com/ArdaYMC/elci/actions/workflows/test.yml/badge.svg" alt="tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/spec-draft%200.0.x-orange" alt="spec draft 0.0.x">
-  <img src="https://img.shields.io/badge/python-3.10%2B-3776AB" alt="Python 3.10+">
+  <a href="https://pypi.org/project/elci/"><img src="https://img.shields.io/pypi/v/elci?color=3776AB" alt="PyPI"></a>
   <a href="https://github.com/ArdaYMC/elci/issues?q=is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/ArdaYMC/elci/good%20first%20issue?label=good%20first%20issues&color=7057ff" alt="good first issues"></a>
 </p>
 
@@ -55,11 +55,11 @@ and nothing binding happens until you say yes, in a way the other side can verif
 | Path | What |
 | --- | --- |
 | [`spec/`](spec/) | The protocol draft, JSON Schemas and language-neutral conformance vectors. **This is the standard.** |
-| [`python/`](python/) | Reference implementation (Python package `elci`; PyPI release coming soon). |
+| [`python/`](python/) | Reference implementation ([`pip install elci`](https://pypi.org/project/elci/)). |
 | [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
 
-## What works today (draft 0.0.5)
+## What works today (0.1.0, spec draft 0.0.5)
 
 - Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
 - Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks
@@ -84,7 +84,7 @@ pip install -e python && python examples/three_agents.py --yes
 ## Use it from Claude Code (MCP)
 
 ```bash
-pip install 'elci[mcp] @ git+https://github.com/ArdaYMC/elci#subdirectory=python'
+pip install 'elci[mcp]'
 claude mcp add elci -- elci-mcp
 ```
 
