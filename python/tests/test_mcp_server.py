@@ -21,7 +21,7 @@ def test_accept_without_receipt_is_refused_before_sending(pair):
     cards, creator, _ = pair
     out = mcp_server.send_message("creator.example", creator.id, "collaboration", "accept", {},
                                   resolve=cards.__getitem__)
-    assert out == {"sent": False, "reason": "'accept' needs a principal-signed approval receipt"}
+    assert out["sent"] is False and "request_approval" in out["reason"]
 
 
 def test_draft_email_and_read_reply():
@@ -41,6 +41,7 @@ def test_server_exposes_tools():
     pytest.importorskip("mcp")
     tools = asyncio.run(mcp_server.build_server().list_tools())
     names = {t.name for t in tools}
-    assert {"discover", "route", "send_message", "draft_email", "read_email_reply", "redact_availability"} <= names
-    send_tool = next(t for t in tools if t.name == "send_message")
-    assert "resolve" not in str(send_tool.input_schema)
+    assert {"discover", "route", "send_message", "check_inbox", "read_message", "request_approval",
+            "approval_status", "draft_email", "read_email_reply", "redact_availability"} <= names
+    for tool in tools:
+        assert "resolve" not in str(tool.input_schema) and "store" not in str(tool.input_schema), tool.name

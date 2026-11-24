@@ -44,6 +44,7 @@ class AgentCard:
     agents: tuple[AgentEntry, ...]
     fallback: str | None = None
     principal_keys: tuple[dict, ...] = ()
+    revoked: tuple[str, ...] = ()  # delegation token ids (jti) revoked before they expire
     raw: dict = field(default_factory=dict, compare=False, repr=False)
 
     @classmethod
@@ -66,7 +67,8 @@ class AgentCard:
         )
         principal = data["principal"]
         return cls(principal["name"], principal["domain"], agents, principal.get("fallback"),
-                   tuple(principal.get("jwks", {}).get("keys", ())), data)
+                   tuple(principal.get("jwks", {}).get("keys", ())),
+                   tuple(principal.get("revoked", ())), data)
 
     def agent_for(self, topic: str) -> AgentEntry | None:
         """First public agent that accepts ``topic``; None means use the fallback."""

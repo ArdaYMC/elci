@@ -3,7 +3,7 @@
 Thanks for helping! Elçi is early, so the most valuable contributions right now are:
 
 - **Issues about the spec**: unclear wording, a use case it cannot express, a security concern.
-- **Conformance vectors** in `spec/vectors/` — they are what keeps every SDK honest.
+- **Conformance vectors** in `spec/vectors/`. They are what keeps every SDK honest.
 - **SDKs in other languages** that pass the vectors (TypeScript is the next one).
 
 ## Ground rules

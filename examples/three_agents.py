@@ -1,9 +1,9 @@
 """Elçi demo: one person, three agents, two counterparties.
 
 Arda has:
-  * Jarvy      – internal coordinator with the full calendar. NOT in the public card.
-  * devbyarda  – public creator agent (collaboration).
-  * acme-work  – public work agent for a fictional company, "Acme Elektronik" (scheduling).
+  * Jarvy: internal coordinator with the full calendar. NOT in the public card.
+  * devbyarda: public creator agent (collaboration).
+  * acme-work: public work agent for a fictional company, "Acme Elektronik" (scheduling).
 
 A brand's agent proposes a collaboration to devbyarda over HTTP. devbyarda asks Jarvy for
 availability and answers at the `busy_free` level only, so the brand never learns what the
@@ -36,7 +36,7 @@ from elci.inbox import send, serve
 
 # --- Jarvy: the only place the full calendar lives --------------------------------------------
 CALENDAR = {
-    "2026-11-26T14:00": {"busy": True, "title": "Acme – tedarikçi toplantısı", "attendees": ["supplier@example.com"]},
+    "2026-11-26T14:00": {"busy": True, "title": "Acme tedarikçi toplantısı", "attendees": ["supplier@example.com"]},
     "2026-11-27T11:00": {"busy": False},
 }
 

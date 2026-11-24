@@ -12,20 +12,20 @@
 
 # Elçi
 
-**An open protocol for personal AI agents to talk to other people's agents — safely.**
+**An open protocol for personal AI agents to talk to other people's agents, safely.**
 
 *Elçi* (pronounced "el-chee") is Turkish for *envoy*: someone who speaks on your behalf,
 with a clear mandate, and is trusted because of it.
 
-> Status: **draft 0.0.x** — the spec and the reference implementation are being written in the open.
+> Status: **draft 0.0.x**. The spec and the reference implementation are being written in the open.
 > Expect breaking changes. Feedback and issues are very welcome.
 
 ## Why
 
 Personal agents are everywhere, and big players are standardising how *your* agent talks to a
 *company* (e.g. Meta & Sierra's Personal Agent Protocol, Decagon's PACT). There is still no open,
-widely adopted way for **my agent to talk to your agent** — to schedule a meeting, agree on a
-collaboration, or exchange a document — without both of us joining the same closed network.
+widely adopted way for **my agent to talk to your agent**: to schedule a meeting, agree on a
+collaboration, or exchange a document, without both of us joining the same closed network.
 
 Elçi focuses on three things existing attempts leave out:
 
@@ -59,7 +59,7 @@ and nothing binding happens until you say yes, in a way the other side can verif
 | [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
 
-## What works today (0.1.0, spec draft 0.0.5)
+## What works today (0.2.0, spec draft 0.0.6)
 
 - Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
 - Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks
@@ -67,7 +67,10 @@ and nothing binding happens until you say yes, in a way the other side can verif
 - Need-to-know disclosure levels
 - Email fallback for people without an agent, with best-effort reply parsing
 - Signed human approval receipts, bound to the exact approved body, required for binding steps
-- An MCP server (`elci-mcp`) so Claude Code or any MCP host can use Elçi
+- An MCP server (`elci-mcp`) that sends, reads its inbox and asks you for approvals
+- `elci` CLI: init (with local agent discovery), relay, pull, approve, renew, rotate, revoke
+- Key lifecycle: key ids, card caching rules, delegation ids and revocation lists
+- A free Cloudflare Worker relay template for card hosting and message queueing
 
 Try the demo:
 
@@ -81,16 +84,54 @@ pip install -e python && python examples/three_agents.py --yes
 <sub>The demo prints in Turkish, the language of its fictional owner. Regenerate this recording with
 `python docs/assets/render_demo.py`.</sub>
 
-## Use it from Claude Code (MCP)
+## Get your Elçi address
 
 ```bash
 pip install 'elci[mcp]'
-claude mcp add elci -- elci-mcp
+elci init --name "Your Name" --domain you.example
 ```
 
-Tools: `discover`, `route`, `send_message`, `draft_email`, `read_email_reply`, `redact_availability`.
-Sending needs `ELCI_AGENT_ID`, `ELCI_PRINCIPAL_DOMAIN`, `ELCI_AGENT_KEY_HEX` and `ELCI_DELEGATION`
-in the environment; keep the key in a secret store. `accept` is refused without a signed approval receipt.
+`elci init` shows the agents it finds on your computer (Claude Code projects and subagents, Claude
+Desktop) and makes public only the ones you pick. It creates your keys, signs a delegation for each
+agent and writes the card to publish at `https://<domain>/.well-known/elci.json`.
+
+No server or domain? The [Cloudflare relay](templates/cloudflare/) gives you a free
+`*.workers.dev` address that serves your card and queues your messages; `elci pull` verifies them on
+your machine.
+
+## Use it from Claude Code (MCP)
+
+Connect each public agent once (`elci init` prints the exact commands):
+
+```bash
+claude mcp add elci -e ELCI_AGENT=assistant -- elci-mcp
+```
+
+Tools: `discover`, `route`, `send_message`, `check_inbox`, `read_message`, `request_approval`,
+`approval_status`, `draft_email`, `read_email_reply`, `redact_availability`.
+
+Binding steps need you, not the agent. The agent calls `request_approval`; you review and sign in a
+terminal:
+
+```bash
+elci approvals          # what your agents are waiting on
+elci approve apr_3f9c…  # shows the exact offer, asks "yes", signs with your principal key
+```
+
+The MCP server never loads the principal key, so an agent cannot approve on its own.
+
+## Keys: renew, rotate, revoke
+
+```bash
+elci status              # delegations and when they expire (90 days by default)
+elci renew               # re-issue delegations
+elci rotate assistant    # new agent key; the old delegation is revoked
+elci rotate --principal  # new principal key; every delegation is re-issued
+elci revoke dlg_…        # revoke one delegation
+```
+
+Republish the card after each change (`elci relay` does it for the Cloudflare relay). What to do when a
+key leaks is in [spec section 7](spec/README.md#7-key-lifecycle).
 
 ## Quick look
 

@@ -6,6 +6,7 @@ import base64
 import hashlib
 import json
 import re
+import secrets
 import time
 from dataclasses import dataclass
 from typing import Iterable
@@ -107,10 +108,12 @@ class Delegation:
     topics: tuple[str, ...]
     intents: tuple[str, ...]
     expires_at: int  # exp, unix seconds
+    jti: str | None = None  # token id, listed in the card's ``revoked`` to revoke it early
 
 
 def issue_delegation(d: Delegation, principal_key: Ed25519PrivateKey, kid: str | None = None,
                      now: int | None = None) -> str:
+    """Sign a delegation token. A random ``jti`` is added when ``d.jti`` is None."""
     header = {"alg": "EdDSA", "typ": "elci-delegation+jwt"}
     if kid:
         header["kid"] = kid
@@ -121,16 +124,30 @@ def issue_delegation(d: Delegation, principal_key: Ed25519PrivateKey, kid: str |
         "intents": list(d.intents),
         "iat": int(time.time()) if now is None else now,
         "exp": d.expires_at,
+        "jti": d.jti or f"dlg_{secrets.token_urlsafe(12)}",
     }
     signing_input = f"{b64u(canonical(header))}.{b64u(canonical(claims))}"
     return f"{signing_input}.{b64u(principal_key.sign(signing_input.encode('ascii')))}"
 
 
+def delegation_claims(token: str) -> dict:
+    """The claims of a delegation token, unverified. For display and bookkeeping only."""
+    try:
+        claims = json.loads(b64u_decode(token.split(".")[1]))
+    except (ValueError, IndexError) as exc:
+        raise SignatureError("malformed delegation token") from exc
+    if not isinstance(claims, dict):
+        raise SignatureError("malformed delegation token")
+    return claims
+
+
 def verify_delegation(token: str, principal_keys: Iterable[dict], *, agent: str, topic: str,
-                      intent: str, principal: str | None = None, now: int | None = None) -> Delegation:
+                      intent: str, principal: str | None = None, now: int | None = None,
+                      revoked: Iterable[str] = ()) -> Delegation:
     """Verify a delegation token and that it covers ``agent``, ``topic`` and ``intent``.
 
     When ``principal`` is given, the token's ``iss`` must name that principal's domain.
+    A token whose ``jti`` is in ``revoked`` (the card's revocation list) is rejected.
     """
     try:
         h64, c64, s64 = token.split(".")
@@ -160,8 +177,13 @@ def verify_delegation(token: str, principal_keys: Iterable[dict], *, agent: str,
         raise SignatureError(f"delegation does not cover topic {topic!r}")
     if intent not in claims.get("intents", []):
         raise SignatureError(f"delegation does not cover intent {intent!r}")
+    jti = claims.get("jti")
+    if jti is not None and not isinstance(jti, str):
+        raise SignatureError("malformed delegation claims")
+    if jti is not None and jti in set(revoked):
+        raise SignatureError("delegation has been revoked")
     return Delegation(claims["iss"], claims["sub"], tuple(claims["topics"]),
-                      tuple(claims["intents"]), claims["exp"])
+                      tuple(claims["intents"]), claims["exp"], jti)
 
 
 # --- human approval receipts ------------------------------------------------------

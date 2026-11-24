@@ -1,6 +1,6 @@
 # Draft: person-to-person extension for the Personal Agent Protocol
 
-Status: **draft for Arda's review — not posted anywhere yet.** Intended as a GitHub issue / discussion
+Status: **draft for Arda's review, not posted anywhere yet.** Intended as a GitHub issue / discussion
 on the PAP repository once Arda approves the wording.
 
 ---

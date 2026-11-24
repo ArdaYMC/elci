@@ -16,3 +16,12 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: pip install -e './python[dev]'
       - run: pytest -q python/tests
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm test
+        working-directory: templates/cloudflare
