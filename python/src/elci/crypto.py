@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
+import re
 import time
 from dataclasses import dataclass
 from typing import Iterable
@@ -23,8 +25,27 @@ def b64u(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
 
 
+_B64U_RE = re.compile(r"[A-Za-z0-9_-]*")
+
+
 def b64u_decode(text: str) -> bytes:
-    return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
+    """Strict base64url (no padding) decoding.
+
+    Rejects padding, characters outside the alphabet and non-zero trailing bits, so every byte
+    string has exactly one accepted encoding. Lenient decoders let an attacker re-encode a captured
+    signature into endless distinct strings that all verify.
+    """
+    if not isinstance(text, str) or not _B64U_RE.fullmatch(text) or len(text) % 4 == 1:
+        raise SignatureError("not canonical base64url")
+    data = base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
+    if b64u(data) != text:
+        raise SignatureError("not canonical base64url")
+    return data
+
+
+def body_digest(obj: object) -> str:
+    """base64url SHA-256 of the canonical JSON of ``obj``; binds approval receipts to a message body."""
+    return b64u(hashlib.sha256(canonical(obj)).digest())
 
 
 def canonical(obj: object) -> bytes:
@@ -71,7 +92,7 @@ def sign_message(message: dict, key: Ed25519PrivateKey) -> dict:
 
 def verify_message(message: dict, keys: Iterable[dict]) -> None:
     """Raise SignatureError unless some key in ``keys`` signed ``message``."""
-    if "signature" not in message:
+    if not isinstance(message.get("signature"), str):
         raise SignatureError("message is not signed")
     body = {k: v for k, v in message.items() if k != "signature"}
     _verify_any(keys, b64u_decode(message["signature"]), canonical(body), None)
@@ -106,20 +127,33 @@ def issue_delegation(d: Delegation, principal_key: Ed25519PrivateKey, kid: str |
 
 
 def verify_delegation(token: str, principal_keys: Iterable[dict], *, agent: str, topic: str,
-                      intent: str, now: int | None = None) -> Delegation:
-    """Verify a delegation token and that it covers ``agent``, ``topic`` and ``intent``."""
+                      intent: str, principal: str | None = None, now: int | None = None) -> Delegation:
+    """Verify a delegation token and that it covers ``agent``, ``topic`` and ``intent``.
+
+    When ``principal`` is given, the token's ``iss`` must name that principal's domain.
+    """
     try:
         h64, c64, s64 = token.split(".")
         header = json.loads(b64u_decode(h64))
         claims = json.loads(b64u_decode(c64))
     except ValueError as exc:
         raise SignatureError("malformed delegation token") from exc
+    if not isinstance(header, dict) or not isinstance(claims, dict):
+        raise SignatureError("malformed delegation token")
     if header.get("alg") != "EdDSA":
         raise SignatureError("delegation must use alg EdDSA")
+    if header.get("typ") != "elci-delegation+jwt":
+        raise SignatureError("delegation must have typ elci-delegation+jwt")
     _verify_any(principal_keys, b64u_decode(s64), f"{h64}.{c64}".encode("ascii"), header.get("kid"))
+    exp, topics, intents = claims.get("exp"), claims.get("topics"), claims.get("intents")
+    if (not isinstance(exp, int) or isinstance(exp, bool) or not isinstance(claims.get("iss"), str)
+            or not isinstance(topics, list) or not isinstance(intents, list)):
+        raise SignatureError("malformed delegation claims")
     current = int(time.time()) if now is None else now
-    if claims.get("exp", 0) <= current:
+    if exp <= current:
         raise SignatureError("delegation expired")
+    if principal is not None and claims["iss"].lower() != principal.lower():
+        raise SignatureError("delegation was issued by a different principal")
     if claims.get("sub") != agent:
         raise SignatureError("delegation was issued to a different agent")
     if topic not in claims.get("topics", []):
@@ -136,13 +170,17 @@ BINDING_INTENTS = frozenset({"accept"})
 
 
 def issue_approval(principal_key: Ed25519PrivateKey, *, principal: str, thread: str, intent: str,
-                   summary: str, now: int | None = None) -> dict:
-    """A receipt, signed by the principal's key, that a human approved one binding step."""
+                   body: dict, summary: str, now: int | None = None) -> dict:
+    """A receipt, signed by the principal's key, that a human approved one binding step.
+
+    ``body`` is the exact message body the human approved; the receipt only covers that body.
+    """
     receipt = {
         "type": "elci-approval",
         "principal": principal,
         "thread": thread,
         "intent": intent,
+        "body_sha256": body_digest(body),
         "summary": summary,
         "approved_at": int(time.time()) if now is None else now,
     }
@@ -150,9 +188,11 @@ def issue_approval(principal_key: Ed25519PrivateKey, *, principal: str, thread: 
 
 
 def verify_approval(receipt: dict, principal_keys: Iterable[dict], *, principal: str, thread: str,
-                    intent: str) -> None:
+                    intent: str, body: dict) -> None:
     if not isinstance(receipt, dict) or receipt.get("type") != "elci-approval":
         raise SignatureError("missing or malformed approval receipt")
     verify_message(receipt, principal_keys)
     if (receipt.get("principal"), receipt.get("thread"), receipt.get("intent")) != (principal, thread, intent):
         raise SignatureError("approval receipt is for a different principal, thread or intent")
+    if receipt.get("body_sha256") != body_digest(body):
+        raise SignatureError("approval receipt does not cover this message body")

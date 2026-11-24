@@ -90,7 +90,7 @@ def test_accept_without_approval_is_rejected():
 def test_accept_with_valid_approval_is_accepted():
     from elci import issue_approval
     cards, a, b, b_pkey = _accept_pair()
-    receipt = issue_approval(b_pkey, principal="b.example", thread="thr_00000001", intent="accept", summary="ok")
+    receipt = issue_approval(b_pkey, principal="b.example", thread="thr_00000001", intent="accept", body={}, summary="ok")
     msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001", approval=receipt)
     assert inbox_for(cards, "a.example").accept(msg)
 
@@ -98,7 +98,7 @@ def test_accept_with_valid_approval_is_accepted():
 def test_approval_for_another_thread_is_rejected():
     from elci import issue_approval
     cards, a, b, b_pkey = _accept_pair()
-    receipt = issue_approval(b_pkey, principal="b.example", thread="thr_other0001", intent="accept", summary="ok")
+    receipt = issue_approval(b_pkey, principal="b.example", thread="thr_other0001", intent="accept", body={}, summary="ok")
     msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001", approval=receipt)
     with pytest.raises(Rejected):
         inbox_for(cards, "a.example").accept(msg)
@@ -107,7 +107,7 @@ def test_approval_for_another_thread_is_rejected():
 def test_approval_signed_by_agent_not_principal_is_rejected():
     from elci import issue_approval
     cards, a, b, _ = _accept_pair()
-    receipt = issue_approval(b.key, principal="b.example", thread="thr_00000001", intent="accept", summary="ok")
+    receipt = issue_approval(b.key, principal="b.example", thread="thr_00000001", intent="accept", body={}, summary="ok")
     msg = b.message(to=a.id, topic="collaboration", intent="accept", body={}, thread="thr_00000001", approval=receipt)
     with pytest.raises(Rejected):
         inbox_for(cards, "a.example").accept(msg)

@@ -35,14 +35,14 @@ Elçi focuses on three things existing attempts leave out:
 | [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
 
-## What works today (0.0.4)
+## What works today (draft 0.0.5)
 
 - Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
 - Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks
-- A verifying inbox (schema, signature, delegation, replay) and a small HTTP transport
+- A verifying inbox (schema, origin binding, freshness, signature, delegation, replay) and a small HTTP transport
 - Need-to-know disclosure levels
 - Email fallback for people without an agent, with best-effort reply parsing
-- Signed human approval receipts required for binding steps
+- Signed human approval receipts, bound to the exact approved body, required for binding steps
 - An MCP server (`elci-mcp`) so Claude Code or any MCP host can use Elçi
 
 Try the demo: `pip install -e python && python examples/three_agents.py --yes`
@@ -68,6 +68,13 @@ policy = DisclosurePolicy(allowed={"availability": "busy_free"})
 policy.redact({"slot": "2026-11-26T14:00", "busy": True, "reason": "supplier meeting"})
 # -> {"slot": "2026-11-26T14:00", "busy": True}
 ```
+
+## Security
+
+Report vulnerabilities privately, see [SECURITY.md](SECURITY.md). The bundled HTTP server is for local
+development and demos; put production endpoints behind HTTPS. Card and key fetches refuse IP literals
+and redirects, but DNS can still point a name at an internal address, so run receivers with egress
+filtering if they sit next to internal services.
 
 ## Contributing
 
