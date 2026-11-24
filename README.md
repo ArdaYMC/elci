@@ -55,7 +55,7 @@ and nothing binding happens until you say yes, in a way the other side can verif
 | Path | What |
 | --- | --- |
 | [`spec/`](spec/) | The protocol draft, JSON Schemas and language-neutral conformance vectors. **This is the standard.** |
-| [`python/`](python/) | Reference implementation (PyPI package `elci`). |
+| [`python/`](python/) | Reference implementation (Python package `elci`; PyPI release coming soon). |
 | [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
 
@@ -69,7 +69,12 @@ and nothing binding happens until you say yes, in a way the other side can verif
 - Signed human approval receipts, bound to the exact approved body, required for binding steps
 - An MCP server (`elci-mcp`) so Claude Code or any MCP host can use Elçi
 
-Try the demo: `pip install -e python && python examples/three_agents.py --yes`
+Try the demo:
+
+```bash
+git clone https://github.com/ArdaYMC/elci && cd elci
+pip install -e python && python examples/three_agents.py --yes
+```
 
 <p align="center"><img src="docs/assets/demo.svg" alt="Terminal replay of the three-agent demo" width="100%"></p>
 
@@ -79,7 +84,7 @@ Try the demo: `pip install -e python && python examples/three_agents.py --yes`
 ## Use it from Claude Code (MCP)
 
 ```bash
-pip install 'elci[mcp]'
+pip install 'elci[mcp] @ git+https://github.com/ArdaYMC/elci#subdirectory=python'
 claude mcp add elci -- elci-mcp
 ```
 
