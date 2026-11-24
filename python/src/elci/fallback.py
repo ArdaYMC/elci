@@ -15,6 +15,13 @@ THREAD_HEADER = "X-Elci-Thread"
 _FOOTER_RE = re.compile(r"elci-thread:\s*([A-Za-z0-9_-]{8,})")
 _YES = {"yes", "ok", "okay", "sure", "evet", "tamam", "olur", "uygun"}
 _NO = {"no", "decline", "hayır", "hayir", "olmaz", "uygun değil", "uygun degil"}
+_ORDINALS = {
+    "first": 1, "1st": 1, "birinci": 1, "birincisi": 1, "ilk": 1, "ilki": 1,
+    "second": 2, "2nd": 2, "ikinci": 2, "ikincisi": 2,
+    "third": 3, "3rd": 3, "üçüncü": 3, "ucuncu": 3, "üçüncüsü": 3, "ucuncusu": 3,
+    "fourth": 4, "4th": 4, "dördüncü": 4, "dorduncu": 4, "dördüncüsü": 4, "dorduncusu": 4,
+    "fifth": 5, "5th": 5, "beşinci": 5, "besinci": 5, "beşincisi": 5, "besincisi": 5,
+}
 
 
 def compose_fallback_email(message: dict, *, from_addr: str, to_addr: str, sender_name: str) -> EmailMessage:
@@ -66,6 +73,22 @@ def _own_words(text: str) -> str:
     return "\n".join(kept).strip()
 
 
+def _parse_choice(first: str) -> int | None:
+    m = re.match(r"^\(?(\d{1,2})\)?[.,)]?(\s|$)", first)
+    if m:
+        return int(m.group(1))
+    m = re.match(r"^(?:option|choice|slot|seçenek|secenek)\s*#?\s*(\d{1,2})(?:\b|[.,!])", first)
+    if m:
+        return int(m.group(1))
+    m = re.match(
+        r"^(?:the\s+)?(" + "|".join(_ORDINALS) + r")(?:\s+(?:one|option|choice|slot|seçenek|secenek))?(?:\b|[.,!])",
+        first,
+    )
+    if m:
+        return _ORDINALS[m.group(1)]
+    return None
+
+
 def parse_reply(raw: bytes) -> FallbackReply:
     """Best-effort reading of a human reply to a fallback email."""
     msg = message_from_bytes(raw, policy=policy.default)
@@ -77,10 +100,7 @@ def parse_reply(raw: bytes) -> FallbackReply:
         thread = found.group(1) if found else None
     words = _own_words(full)
     first = words.splitlines()[0].strip().lower() if words else ""
-    choice = None
-    m = re.match(r"^\(?(\d{1,2})\)?[.,)]?(\s|$)", first)
-    if m:
-        choice = int(m.group(1))
+    choice = _parse_choice(first)
     cleaned = first.strip(" .!")
     declined = cleaned in _NO or cleaned.startswith(("hayır", "hayir", "no ", "no,"))
     accepted = choice is not None or cleaned in _YES

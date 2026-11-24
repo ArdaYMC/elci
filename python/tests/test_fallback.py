@@ -53,3 +53,14 @@ def test_unclear_reply_is_neither():
     r = parse_reply(_reply("Bir sonraki hafta arayabilir misiniz?", with_header=True))
     assert r.choice is None and not r.accepted and not r.declined
     assert "sonraki hafta" in r.text
+
+
+def test_reply_with_option_or_ordinal_phrases():
+    for sample, expected in [
+        ("the second one works for me", 2),
+        ("ikincisi uygun", 2),
+        ("Option 1 please", 1),
+    ]:
+        r = parse_reply(_reply(sample, with_header=True))
+        assert r.choice == expected and r.accepted and not r.declined
+        assert r.needs_confirmation
