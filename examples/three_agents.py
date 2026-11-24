@@ -65,12 +65,13 @@ def principal(domain: str, name: str, agents: dict[str, tuple[tuple[str, ...], t
     return card, handles, pkey
 
 
-def approve(principal_key, what: str, auto_yes: bool, *, thread: str, intent: str) -> dict:
+def approve(principal_key, what: str, auto_yes: bool, *, thread: str, intent: str, body: dict) -> dict:
     """Ask the human. In the demo the answer is 'yes' when auto_yes is set."""
     print(f"   [ONAY / APPROVAL] Arda'ya soruluyor: {what}")
     if not auto_yes and input("   Onaylıyor musun? (e/h) ").strip().lower() not in {"e", "evet", "y", "yes"}:
         raise SystemExit("Arda onaylamadı, işlem durdu.")
-    receipt = issue_approval(principal_key, principal="arda.example", thread=thread, intent=intent, summary=what)
+    receipt = issue_approval(principal_key, principal="arda.example", thread=thread, intent=intent, body=body,
+                             summary=what)
     print("   [ONAY] verildi, imzalı makbuz eklendi")
     return receipt
 
@@ -129,11 +130,11 @@ def main(auto_yes: bool = True) -> dict:
             send(answer, local["brand.example"], allow_insecure_localhost=True)
             log["answer"] = answer
             if free:
+                body = {"slot": free[0]}
                 receipt = approve(arda_pkey, f"Brand Co. ile iş birliği, {free[0]}", auto_yes,
-                                  thread=message["thread"], intent="accept")
+                                  thread=message["thread"], intent="accept", body=body)
                 accept = arda["devbyarda"].message(to=message["from"], topic="collaboration", intent="accept",
-                                                    body={"slot": free[0]}, thread=message["thread"],
-                                                    approval=receipt)
+                                                    body=body, thread=message["thread"], approval=receipt)
                 send(accept, local["brand.example"], allow_insecure_localhost=True)
                 log["accept"] = accept
             return {"received": True}
@@ -164,7 +165,7 @@ def main(auto_yes: bool = True) -> dict:
         print(f"6) Cevap ayrıştırıldı: seçenek={parsed.choice}, thread={parsed.thread}, onay gerekli={parsed.needs_confirmation}")
         chosen = ask["body"]["slots"][parsed.choice - 1]
         log["supplier_receipt"] = approve(arda_pkey, f"Tedarikçi görüşmesi {chosen}", auto_yes,
-                                          thread=ask["thread"], intent="accept")
+                                          thread=ask["thread"], intent="accept", body={"slot": chosen})
         log["supplier_slot"] = chosen
         print("7) Jarvy takvime işledi. Bitti.")
         return log
