@@ -21,7 +21,7 @@ from email import policy
 from email.parser import BytesParser
 
 from .card import AgentCard
-from .crypto import BINDING_INTENTS
+from .crypto import BINDING_INTENTS, delegation_claims
 from .disclosure import DisclosurePolicy
 from .fallback import compose_fallback_email, parse_reply
 from .home import Home, default_home
@@ -90,11 +90,18 @@ def send_message(domain: str, to_agent_id: str, topic: str, intent: str, body: d
             return {"sent": False, "reason": str(exc)}
         if thread is None:
             thread = approval["thread"]
+    agent = _agent()
+    claims = delegation_claims(agent.delegation)
+    if topic not in (claims.get("topics") or []):
+        return {"sent": False, "reason": f"this agent may only talk about {', '.join(claims.get('topics') or [])}; "
+                                         f"{topic!r} would be rejected (use another agent or add the topic)"}
+    if intent not in (claims.get("intents") or []):
+        return {"sent": False, "reason": f"this agent may not send {intent!r}"}
     card = resolve(domain)
     target = card.agent(to_agent_id)
     if target is None:
         return {"sent": False, "reason": "agent not listed in that card"}
-    message = _agent().message(to=to_agent_id, topic=topic, intent=intent, body=body, thread=thread,
+    message = agent.message(to=to_agent_id, topic=topic, intent=intent, body=body, thread=thread,
                                approval=approval)
     status, response = send(message, target.endpoint)
     store = store or _store()

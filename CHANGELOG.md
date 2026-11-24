@@ -8,6 +8,9 @@
   and delegation for a hosted agent
 - `send_message` verifies an answer that comes back in the HTTP response (signature, delegation,
   freshness, sender) and files it in the inbox; unverified answers are flagged, not trusted
+- `send_message` refuses, before sending, a topic or intent the agent's own delegation does not
+  cover (the receiver would reject it anyway)
+- Clearer error when the principal passphrase is left empty at the prompt
 
 ## 0.2.1
 

@@ -50,6 +50,10 @@ elci relay                                         # publish the card with the d
 elci export-agent demo | npx wrangler secret put ELCI_DEMO
 ```
 
+Run the lines one by one: if `add` fails (wrong passphrase, say), `export-agent` prints nothing and
+wrangler stores an empty secret. That is harmless, the Worker ignores it, but the demo stays off
+until you run the last line again.
+
 Anyone can now send it a `query` or a `propose` on `demo` or `scheduling` and get a verified answer
 back in the same request (from Claude: "ask the demo agent at <your domain> when it is free").
 It answers `propose` and `accept` with `needs_human`, rejects other topics, and allows 20 messages a

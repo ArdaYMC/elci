@@ -71,7 +71,8 @@ def _load_pem(path: Path, passphrase: str | None) -> Ed25519PrivateKey:
         key = serialization.load_pem_private_key(path.read_bytes(),
                                                  passphrase.encode("utf-8") if passphrase else None)
     except TypeError as exc:  # encrypted key but no passphrase, or the other way round
-        raise HomeError("the principal key is protected: set the passphrase (ELCI_PASSPHRASE)") from exc
+        raise HomeError("the principal key is protected: type its passphrase when asked "
+                        "(or set ELCI_PASSPHRASE)") from exc
     except ValueError as exc:
         raise HomeError("wrong passphrase for the principal key") from exc
     if not isinstance(key, Ed25519PrivateKey):
