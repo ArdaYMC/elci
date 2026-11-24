@@ -59,7 +59,7 @@ and nothing binding happens until you say yes, in a way the other side can verif
 | [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
 
-## What works today (0.2.1, spec draft 0.0.6)
+## What works today (0.3.0, spec draft 0.0.6)
 
 - Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
 - Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks
@@ -70,7 +70,8 @@ and nothing binding happens until you say yes, in a way the other side can verif
 - An MCP server (`elci-mcp`) that sends, reads its inbox and asks you for approvals
 - `elci` CLI: init (with local agent discovery), relay, pull, approve, renew, rotate, revoke
 - Key lifecycle: key ids, card caching rules, delegation ids and revocation lists
-- A free Cloudflare Worker relay template for card hosting and message queueing
+- A free Cloudflare Worker relay template for card hosting and message queueing, with an optional
+  public demo agent that answers on the spot (signed in JavaScript, verified in Python)
 
 Try the demo:
 

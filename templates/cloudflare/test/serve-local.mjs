@@ -1,5 +1,5 @@
 // Runs the relay logic on plain Node with in-memory storage, for interop tests.
-// Usage: node test/serve-local.mjs <port> <token>
+// Usage: [ELCI_DEMO=...] node test/serve-local.mjs <port> <token>
 import http from "node:http";
 import { handle } from "../src/relay.js";
 
@@ -21,7 +21,7 @@ http.createServer(async (req, res) => {
   const body = chunks.length ? Buffer.concat(chunks) : undefined;
   const request = new Request(`https://${req.headers.host.split(":")[0]}${req.url}`,
     { method: req.method, headers: req.headers, body: req.method === "GET" ? undefined : body });
-  const response = await handle(request, { ELCI_TOKEN: token }, box);
+  const response = await handle(request, { ELCI_TOKEN: token, ELCI_DEMO: process.env.ELCI_DEMO }, box);
   res.writeHead(response.status, Object.fromEntries(response.headers));
   res.end(Buffer.from(await response.arrayBuffer()));
 }).listen(Number(port), "127.0.0.1", () => console.log("ready"));

@@ -72,3 +72,47 @@ def test_publish_queue_and_pull_through_the_relay(relay, tmp_path, monkeypatch):
     assert [r["message"] for r in received] == [msg]
     assert abs(received[0]["received_at"] - time.time()) < 60
     assert call(relay, "me.workers.dev", "GET", "/admin/messages", token="tok-123")[1] == []
+
+
+def test_demo_agent_in_the_worker_answers_with_a_reply_python_verifies(tmp_path, monkeypatch):
+    """The Worker's demo agent signs in JavaScript; the Python sender verifies signature and delegation."""
+    monkeypatch.setenv("ELCI_PASSPHRASE", "")
+    me, them = tmp_path / "me", tmp_path / "them"
+    cli.main(["--home", str(me), "init", "--name", "Me", "--domain", "me.workers.dev", "--agent", "assistant:scheduling"])
+    assert cli.main(["--home", str(me), "add", "demo:demo,scheduling",
+                     "--intents", "answer,propose,decline,needs_human"]) == 0
+    cli.main(["--home", str(them), "init", "--name", "Them", "--domain", "them.example", "--agent", "bot:scheduling"])
+    secret = Home(me).export_agent("demo")
+    assert "accept" not in secret["intents"] and set(secret["jwk"]) >= {"x", "d"}
+
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    import os
+    proc = subprocess.Popen(["node", "test/serve-local.mjs", str(port), "tok"], cwd=RELAY, stdout=subprocess.PIPE,
+                            text=True, env={**os.environ, "ELCI_DEMO": json.dumps(secret)})
+    try:
+        assert proc.stdout.readline().strip() == "ready"
+        from elci import mcp_server
+
+        def over_http(message, endpoint):
+            return call(port, "me.workers.dev", "POST", "/inbox/demo", message)
+
+        cards = {"me.workers.dev": Home(me).card(), "them.example": Home(them).card()}
+        monkeypatch.setattr(mcp_server, "send", over_http)
+        monkeypatch.setenv("ELCI_HOME", str(them))
+        out = mcp_server.send_message("me.workers.dev", secret["id"], "scheduling", "query",
+                                      {"text": "free on Thursday?"}, resolve=cards.__getitem__)
+        assert out["status"] == 202 and out["reply_verified"] is True, out
+        assert out["answer"]["intent"] == "answer" and out["answer"]["body"]["demo"] is True
+        assert [r["message"] for r in Store(Home(them).store_path).received()] == [out["answer"]]
+
+        # A proposal never comes back accepted, and a reply from another agent is not trusted.
+        out = mcp_server.send_message("me.workers.dev", secret["id"], "scheduling", "propose",
+                                      {"slots": ["2026-11-26T10:00:00Z/PT30M"]}, resolve=cards.__getitem__)
+        assert out["answer"]["intent"] == "needs_human"
+        assert mcp_server._check_reply({**out["answer"], "from": "https://me.workers.dev/agents/assistant"},
+                                       secret["id"], cards.__getitem__, Store(tmp_path / "s"))["reply_verified"] is False
+    finally:
+        proc.terminate()
+        proc.wait(timeout=5)

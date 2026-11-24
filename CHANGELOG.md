@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+- Public demo agent in the Cloudflare Worker (`ELCI_DEMO`): answers at once with a signed message
+  built from fixed sample data, stores nothing, never accepts, rate limited
+- `elci add --intents` narrows what an agent may send; `elci export-agent` prints one agent's key
+  and delegation for a hosted agent
+- `send_message` verifies an answer that comes back in the HTTP response (signature, delegation,
+  freshness, sender) and files it in the inbox; unverified answers are flagged, not trusted
+
 ## 0.2.1
 
 - Send an `elci/<version>` User-Agent on every outgoing request (card fetch, message send, relay

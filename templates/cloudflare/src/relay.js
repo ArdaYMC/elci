@@ -1,3 +1,5 @@
+import { MAX_DEMO_MESSAGE, allow, checkDemoMessage, demoReply, parseDemo } from "./demo.js";
+
 // Elçi relay: serves your card and queues incoming messages until `elci pull` fetches them.
 // It does not verify signatures: your own machine does that on pull, with the Python package.
 // Pure request handling lives here so it can be tested without Cloudflare (see test/).
@@ -6,6 +8,7 @@ const MAX_MESSAGE = 256 * 1024;
 const MAX_CARD = 64 * 1024;
 const MAX_QUEUE = 1000;
 const PAGE = 100;
+let demoCache = { text: undefined, demo: null };
 
 const json = (status, body, extra = {}) =>
   new Response(JSON.stringify(body), {
@@ -55,6 +58,28 @@ export async function handle(request, env, box, now = Date.now()) {
   }
 
   if (request.method === "POST" && path.startsWith("/inbox/")) {
+    if (demoCache.text !== env.ELCI_DEMO) {
+      let demo = null;
+      try {
+        demo = parseDemo(env.ELCI_DEMO);
+      } catch (err) {
+        console.error(`ELCI_DEMO ignored: ${err.message}`); // a bad secret must not break the real inbox
+      }
+      demoCache = { text: env.ELCI_DEMO, demo };
+    }
+    const demo = demoCache.demo;
+    if (demo && path === demo.path) {
+      // The demo agent answers at once and stores nothing (see demo.js).
+      if (!allow(request.headers.get("cf-connecting-ip") || "local", now)) {
+        return json(429, { status: "rejected", reason: "slow down: 20 messages a minute" }, { "retry-after": "60" });
+      }
+      const text = await readLimited(request, MAX_DEMO_MESSAGE);
+      if (text === null) return json(413, { status: "rejected", reason: "message too large" });
+      const message = parseObject(text);
+      const problem = checkDemoMessage(message, demo);
+      if (problem) return json(400, { status: "rejected", reason: problem });
+      return json(202, { status: "accepted", reply: await demoReply(message, demo, now) });
+    }
     const cardText = await box.getCard();
     const card = cardText ? JSON.parse(cardText) : null;
     const agent = card?.agents?.find((a) => new URL(a.endpoint).pathname === path);
