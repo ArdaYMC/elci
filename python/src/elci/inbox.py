@@ -122,9 +122,15 @@ class Inbox:
     def _clock(self) -> float:
         return self.now() if self.now else time.time()
 
-    def accept(self, message: dict) -> dict:
+    def accept(self, message: dict, *, received_at: float | None = None) -> dict:
+        """Verify ``message``; return it or raise Rejected.
+
+        ``received_at`` (unix seconds) is when a relay you trust queued the message. Use it when
+        you pull messages later, so the freshness window is measured at arrival, not at pull time.
+        """
+        current = self._clock() if received_at is None else received_at
         try:
-            return self._accept(message)
+            return self._accept(message, current)
         except Rejected:
             raise
         except SignatureError as exc:
@@ -132,7 +138,24 @@ class Inbox:
         except (ValueError, TypeError, KeyError, AttributeError) as exc:
             raise Rejected("malformed message") from exc
 
-    def _accept(self, message: dict) -> dict:
+    def _sender(self, principal: str, agent_id: str):
+        try:
+            card = self.resolve_card(principal)
+        except Exception as exc:  # network or schema failure; details stay on this side
+            raise Rejected("cannot resolve sender card", 401) from exc
+        if card.domain.lower() != principal.lower():
+            raise Rejected("sender card is for a different domain", 401)
+        sender = card.agent(agent_id)
+        if sender is None:
+            raise Rejected("sender agent is not listed in its principal's card", 401)
+        if sender.keys:
+            return card, sender, list(sender.keys)
+        try:
+            return card, sender, self.fetch_keys(sender.jwks_uri)
+        except Exception as exc:
+            raise Rejected("cannot fetch sender keys", 401) from exc
+
+    def _accept(self, message: dict, current: float) -> dict:
         try:
             jsonschema.validate(message, _schemas.load("message.schema.json"))
         except jsonschema.ValidationError as exc:
@@ -143,7 +166,6 @@ class Inbox:
             raise Rejected("on_behalf_of must be a DNS domain")
         if not _host_in_domain(message["from"], principal):
             raise Rejected("sender agent id is not on its principal's domain", 401)
-        current = self._clock()
         created = _timestamp(message["created_at"])
         if created < current - self.max_age or created > current + self.max_skew:
             raise Rejected("message is too old or from the future", 401)
@@ -154,29 +176,22 @@ class Inbox:
         if message["topic"] not in recipient.topics:
             raise Rejected(f"agent does not accept topic {message['topic']!r}", 403)
 
+        sender_card, sender, keys = self._sender(principal, message["from"])
         try:
-            sender_card = self.resolve_card(principal)
-        except Exception as exc:  # network or schema failure; details stay on this side
-            raise Rejected("cannot resolve sender card", 401) from exc
-        if sender_card.domain.lower() != principal.lower():
-            raise Rejected("sender card is for a different domain", 401)
-        sender = sender_card.agent(message["from"])
-        if sender is None:
-            raise Rejected("sender agent is not listed in its principal's card", 401)
-        if sender.keys:
-            keys = list(sender.keys)
-        else:
-            try:
-                keys = self.fetch_keys(sender.jwks_uri)
-            except Exception as exc:
-                raise Rejected("cannot fetch sender keys", 401) from exc
-
-        verify_message(message, keys)
+            verify_message(message, keys)
+        except SignatureError:
+            # The sender may have rotated its key since the card was cached: refetch it once.
+            invalidate = getattr(self.resolve_card, "invalidate", None)
+            if invalidate is None:
+                raise
+            invalidate(principal)
+            sender_card, sender, keys = self._sender(principal, message["from"])
+            verify_message(message, keys)
         if "delegation" not in message:
             raise SignatureError("missing delegation token")
         verify_delegation(message["delegation"], sender_card.principal_keys, agent=sender.id,
                           topic=message["topic"], intent=message["intent"], principal=principal,
-                          now=int(current))
+                          now=int(current), revoked=sender_card.revoked)
         if message["intent"] in BINDING_INTENTS:
             verify_approval(message.get("approval"), sender_card.principal_keys, principal=principal,
                             thread=message["thread"], intent=message["intent"], body=message["body"])
@@ -191,6 +206,39 @@ class Inbox:
                 raise Rejected("replayed message", 409)
             self._seen[digest] = created
         return message
+
+
+class CardCache:
+    """Card resolver that caches cards for ``ttl`` seconds (spec section 8 caps this at one hour).
+
+    ``Inbox`` calls ``invalidate`` and retries once when a signature fails, so key rotation is
+    picked up without waiting for the cache to expire. A card fetched less than ``min_refresh``
+    seconds ago is kept, so forged messages cannot make us hammer the sender's server.
+    """
+
+    def __init__(self, resolve: CardResolver = fetch_card, ttl: float = 300,
+                 clock: Callable[[], float] = time.time, min_refresh: float = 30):
+        self.resolve, self.ttl, self.clock = resolve, min(ttl, 3600), clock
+        self.min_refresh = min_refresh
+        self._cards: dict[str, tuple[float, AgentCard]] = {}
+        self._lock = threading.Lock()
+
+    def __call__(self, domain: str) -> AgentCard:
+        key = domain.lower()
+        with self._lock:
+            hit = self._cards.get(key)
+        if hit and self.clock() - hit[0] < self.ttl:
+            return hit[1]
+        card = self.resolve(domain)
+        with self._lock:
+            self._cards[key] = (self.clock(), card)
+        return card
+
+    def invalidate(self, domain: str) -> None:
+        with self._lock:
+            hit = self._cards.get(domain.lower())
+            if hit and self.clock() - hit[0] >= self.min_refresh:
+                del self._cards[domain.lower()]
 
 
 def serve(inbox: Inbox, handle: Callable[[dict], dict | None], host: str = "127.0.0.1",

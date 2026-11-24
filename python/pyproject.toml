@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "elci"
-version = "0.1.0"
+version = "0.2.0"
 description = "Reference implementation of Elçi, an open person-to-person agent protocol."
 readme = "README.md"
 license = "MIT"
@@ -33,6 +33,7 @@ mcp = ["mcp>=2"]
 dev = ["pytest>=8", "mcp>=2"]
 
 [project.scripts]
+elci = "elci.cli:main"
 elci-mcp = "elci.mcp_server:main"
 
 [project.urls]

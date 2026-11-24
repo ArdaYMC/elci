@@ -1,0 +1,9 @@
+{
+  "name": "elci-relay",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "test": "node --test test/*.test.mjs"
+  }
+}

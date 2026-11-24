@@ -49,6 +49,15 @@
             }
           },
           "description": "Principal keys that sign delegation tokens (spec section 4)."
+        },
+        "revoked": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Delegation token ids (jti) revoked before they expire (spec section 7)."
         }
       }
     },

@@ -1,16 +1,17 @@
 """MCP server: lets any MCP host (Claude Code, Claude Desktop, ...) use Elçi.
 
-Configure with environment variables:
+Configuration, simplest first:
 
-  ELCI_AGENT_ID          https URL of this agent, as listed in your principal card
-  ELCI_PRINCIPAL_DOMAIN  your domain (the card lives at https://<domain>/.well-known/elci.json)
-  ELCI_AGENT_KEY_HEX     32-byte Ed25519 seed of the agent key, hex (keep it in a secret store)
-  ELCI_DELEGATION        delegation token your principal key issued to this agent
+  1. Run ``elci init`` once. The server then uses ``~/.elci`` (or ``ELCI_HOME``); set ``ELCI_AGENT``
+     to pick an agent when you have several.
+  2. Or set ELCI_AGENT_ID, ELCI_PRINCIPAL_DOMAIN, ELCI_AGENT_KEY_HEX (32-byte Ed25519 seed, hex)
+     and ELCI_DELEGATION directly.
 
 Run:  elci-mcp            (stdio)
 
-Binding intents (``accept``) are refused unless a principal-signed approval receipt is passed in;
-an agent cannot approve on its own.
+Binding intents (``accept``) need a receipt signed with the principal key. The server never holds
+that key: ``request_approval`` files a request, the human runs ``elci approve <id>`` in a terminal,
+and ``send_message(..., approval_id=<id>)`` attaches the signed receipt.
 """
 
 from __future__ import annotations
@@ -23,7 +24,19 @@ from .card import AgentCard
 from .crypto import BINDING_INTENTS
 from .disclosure import DisclosurePolicy
 from .fallback import compose_fallback_email, parse_reply
+from .home import Home, default_home
 from .inbox import fetch_card, send
+from .store import Store, StoreError
+
+ENV_VARS = ("ELCI_AGENT_ID", "ELCI_PRINCIPAL_DOMAIN", "ELCI_AGENT_KEY_HEX", "ELCI_DELEGATION")
+
+
+def _home() -> Home:
+    return Home(default_home())
+
+
+def _store() -> Store:
+    return Store(_home().store_path)
 
 
 def _agent():
@@ -31,10 +44,11 @@ def _agent():
 
     from .agent import Agent
 
-    missing = [v for v in ("ELCI_AGENT_ID", "ELCI_PRINCIPAL_DOMAIN", "ELCI_AGENT_KEY_HEX", "ELCI_DELEGATION")
-               if not os.environ.get(v)]
-    if missing:
-        raise RuntimeError(f"set {', '.join(missing)} to send messages")
+    if not all(os.environ.get(v) for v in ENV_VARS):
+        home = _home()
+        if home.exists():
+            return home.agent(os.environ.get("ELCI_AGENT") or None)
+        raise RuntimeError("run `elci init` first, or set " + ", ".join(ENV_VARS))
     key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(os.environ["ELCI_AGENT_KEY_HEX"]))
     return Agent(os.environ["ELCI_AGENT_ID"], os.environ["ELCI_PRINCIPAL_DOMAIN"], key,
                  os.environ["ELCI_DELEGATION"])
@@ -62,9 +76,20 @@ def route(domain: str, topic: str, resolve=fetch_card) -> dict:
 
 
 def send_message(domain: str, to_agent_id: str, topic: str, intent: str, body: dict,
-                 thread: str | None = None, approval: dict | None = None, resolve=fetch_card) -> dict:
-    if intent in BINDING_INTENTS and approval is None:
-        return {"sent": False, "reason": f"{intent!r} needs a principal-signed approval receipt"}
+                 thread: str | None = None, approval_id: str | None = None, resolve=fetch_card,
+                 store: Store | None = None) -> dict:
+    """Send a signed message to another person's agent. ``accept`` needs ``approval_id``."""
+    approval = None
+    if intent in BINDING_INTENTS:
+        if not approval_id:
+            return {"sent": False, "reason": f"{intent!r} is binding: call request_approval first, ask the "
+                                             "human to run `elci approve <id>`, then pass approval_id"}
+        try:
+            approval = (store or _store()).receipt(approval_id, body)
+        except StoreError as exc:
+            return {"sent": False, "reason": str(exc)}
+        if thread is None:
+            thread = approval["thread"]
     card = resolve(domain)
     target = card.agent(to_agent_id)
     if target is None:
@@ -72,7 +97,47 @@ def send_message(domain: str, to_agent_id: str, topic: str, intent: str, body: d
     message = _agent().message(to=to_agent_id, topic=topic, intent=intent, body=body, thread=thread,
                                approval=approval)
     status, reply = send(message, target.endpoint)
+    (store or _store()).add_sent(message, status, reply)
     return {"sent": status == 202, "status": status, "reply": reply, "thread": message["thread"]}
+
+
+def check_inbox(unread_only: bool = True, store: Store | None = None) -> list[dict]:
+    """Messages other agents sent you (already verified on arrival). Newest last."""
+    out = []
+    for item in (store or _store()).received(unread_only=unread_only):
+        m = item["message"]
+        out.append({"id": item["id"], "from": m["from"], "on_behalf_of": m["on_behalf_of"], "topic": m["topic"],
+                    "intent": m["intent"], "thread": m["thread"], "created_at": m["created_at"],
+                    "read": item["read"]})
+    return out
+
+
+def read_message(message_id: str, store: Store | None = None) -> dict:
+    """The full message (body included); marks it read."""
+    try:
+        return (store or _store()).read_received(message_id)["message"]
+    except StoreError as exc:
+        return {"error": str(exc)}
+
+
+def request_approval(thread: str, intent: str, body: dict, summary: str, to_agent_id: str | None = None,
+                     topic: str | None = None, store: Store | None = None) -> dict:
+    """Ask your human to approve one binding step. Returns an id; they approve it in a terminal."""
+    agent = _agent()
+    approval_id = (store or _store()).request_approval(
+        principal=agent.principal_domain, thread=thread, intent=intent, body=body, summary=summary,
+        to=to_agent_id, topic=topic, agent=agent.id)
+    return {"approval_id": approval_id, "state": "pending",
+            "ask_human": f"Please run `elci approve {approval_id}` in a terminal to review and sign: {summary}"}
+
+
+def approval_status(approval_id: str, store: Store | None = None) -> dict:
+    """pending, signed or denied."""
+    try:
+        request = (store or _store()).approval_request(approval_id)
+    except StoreError as exc:
+        return {"error": str(exc)}
+    return {"approval_id": approval_id, "state": request["state"], "summary": request["summary"]}
 
 
 def draft_email(to_address: str, topic: str, sender_name: str, options: list[str] | None = None,
@@ -104,28 +169,31 @@ def build_server():
     server = MCPServer(
         name="elci",
         instructions="Talk to other people's agents with Elçi. Discover a person's agents by domain, "
-                     "share availability only at the allowed level, draft emails for people without "
-                     "an agent. Never send a binding 'accept' without the human's signed approval.",
+                     "check_inbox for what others sent, share availability only at the allowed level, "
+                     "draft emails for people without an agent. Before any 'accept', call request_approval "
+                     "and ask the human to run `elci approve <id>`; never claim approval yourself.",
     )
-    for fn in (discover, route, send_message, draft_email, read_email_reply, redact_availability):
+    for fn in (discover, route, send_message, check_inbox, read_message, request_approval, approval_status,
+               draft_email, read_email_reply, redact_availability):
         server.tool()(_without_resolver(fn))
     return server
 
 
 def _without_resolver(fn):
-    """Hide the test-only ``resolve`` parameter from the tool schema."""
+    """Hide the test-only ``resolve`` and ``store`` parameters from the tool schema."""
     import functools
     import inspect
 
+    hidden = {"resolve", "store"}
     sig = inspect.signature(fn)
-    if "resolve" not in sig.parameters:
+    if not hidden & set(sig.parameters):
         return fn
 
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         return fn(*args, **kwargs)
 
-    wrapper.__signature__ = sig.replace(parameters=[p for n, p in sig.parameters.items() if n != "resolve"])
+    wrapper.__signature__ = sig.replace(parameters=[p for n, p in sig.parameters.items() if n not in hidden])
     return wrapper
 
 

@@ -1,4 +1,4 @@
-# Elçi protocol, draft 0.0.5
+# Elçi protocol, draft 0.0.6
 
 Status: working draft. Nothing here is stable. Key words MUST, SHOULD, MAY follow RFC 2119.
 
@@ -80,10 +80,11 @@ An agent proves it speaks for its principal with a **delegation token**: a compa
 | `topics` | topics the agent may act on |
 | `intents` | intents the agent may send |
 | `iat`, `exp` | issued-at and expiry, unix seconds |
+| `jti` | unique token id, so the token can be revoked (§7) |
 
 Messages carry it in a `delegation` member. A receiver MUST reject a message whose token has another
 `typ`, is expired, has an `iss` other than the message's `on_behalf_of`, is issued to another agent,
-or does not list the message's `topic` and `intent`.
+or does not list the message's `topic` and `intent`, or whose `jti` the card revokes (§7).
 Binding intents (in 0.0.5: `accept`) MUST also carry an `approval` member: a **human approval
 receipt** signed (like a message, §3) by a key in the principal's `jwks`, never by the agent's key:
 
@@ -113,6 +114,38 @@ email to the card's `fallback` (or a known address) that a human can read and an
 carries a machine-readable footer with the thread id so replies can be matched. Parsing the human
 reply is best effort and MUST be confirmed with the principal before any binding action.
 
-## 7. Conformance
+## 7. Key lifecycle
+
+The principal's domain is the root of trust: whoever controls `https://<domain>/.well-known/elci.json`
+decides which keys count. Everything else follows from re-reading the card.
+
+**Key ids.** Once a JWK Set holds more than one key, every key in it MUST have a unique `kid`, and
+delegation tokens MUST name theirs in the JWS header.
+
+**Caching.** A receiver MAY cache a card for at most one hour (less if `Cache-Control` says so). If a
+signature does not verify against a cached card, the receiver SHOULD fetch the card again once before
+rejecting, but not more often than every 30 seconds per domain.
+
+**Rotation (planned).** To replace a key: publish the new key next to the old one, sign new
+delegations (principal key) or messages (agent key) with it, wait at least one hour for caches, then
+remove the old key. Removing a key from the card invalidates everything signed only by it.
+
+**Delegation tokens** carry a `jti` (unique token id) and SHOULD expire within 90 days. The card MAY
+list ids revoked before they expire in `principal.revoked`; a receiver MUST reject a delegation whose
+`jti` is listed. Expired ids can be dropped from the list.
+
+**Compromise.**
+
+| Lost or leaked | Do this | Effect |
+| --- | --- | --- |
+| An agent key | Remove it from the agent's `jwks`, add a new one, revoke that agent's delegation `jti` | Messages signed with the old key stop verifying at the next card fetch |
+| A delegation token | List its `jti` in `principal.revoked`, issue a new one | The old token is refused |
+| The principal key | Replace `principal.jwks`, re-issue every delegation | Every delegation and approval receipt signed by the old key stops verifying |
+| The domain | Out of scope, as for TLS | Whoever controls the domain controls the card |
+
+Approval receipts (§4) are checked against the principal keys in the card **at the time the message is
+received**, so they are revoked together with the key that signed them.
+
+## 8. Conformance
 
 [`vectors/`](vectors/) holds input/expected-output pairs every implementation MUST pass.
