@@ -37,12 +37,33 @@ Behind a company proxy, Node may fail with "fetch failed". Let it use the system
 
 Then, whenever you want your messages: `elci pull` (your agents see them through `elci-mcp`).
 
+## Optional: a public demo agent
+
+Give people something to talk to. The Worker can host one agent that answers at once, with a
+signed message, using fixed sample data. It runs entirely inside the Worker: no storage, no server
+of yours, no queue. Its delegation leaves out `accept`, so it can never commit you to anything, and
+it never sees your principal key.
+
+```bash
+elci add demo:demo,scheduling --intents answer,propose,decline,needs_human
+elci relay                                         # publish the card with the demo agent in it
+elci export-agent demo | npx wrangler secret put ELCI_DEMO
+```
+
+Anyone can now send it a `query` or a `propose` on `demo` or `scheduling` and get a verified answer
+back in the same request (from Claude: "ask the demo agent at <your domain> when it is free").
+It answers `propose` and `accept` with `needs_human`, rejects other topics, and allows 20 messages a
+minute per client address. On the free plan, abuse can only use up the daily request quota, it
+cannot cost money. After `elci renew` or `elci rotate demo`, run the `export-agent` line again. To
+switch it off: `npx wrangler secret delete ELCI_DEMO` and `elci remove demo`.
+
 ## Endpoints
 
 | Method and path | Who | What |
 | --- | --- | --- |
 | `GET /.well-known/elci.json` | anyone | your card (cached 5 minutes) |
 | `POST /inbox/<agent>` | other agents | queue a message for an agent in your card (256 KB max, 1000 queued max) |
+| `POST /inbox/<demo>` | anyone | with `ELCI_DEMO` set: an immediate signed answer from the demo agent, nothing stored |
 | `PUT /admin/card` | you (`ELCI_TOKEN`) | publish the card; its `principal.domain` must be this Worker's host |
 | `GET /admin/messages` | you | up to 100 queued messages, oldest first |
 | `POST /admin/ack` | you | delete messages you have pulled |

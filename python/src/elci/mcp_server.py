@@ -25,7 +25,7 @@ from .crypto import BINDING_INTENTS
 from .disclosure import DisclosurePolicy
 from .fallback import compose_fallback_email, parse_reply
 from .home import Home, default_home
-from .inbox import fetch_card, send
+from .inbox import Inbox, Rejected, fetch_card, send
 from .store import Store, StoreError
 
 ENV_VARS = ("ELCI_AGENT_ID", "ELCI_PRINCIPAL_DOMAIN", "ELCI_AGENT_KEY_HEX", "ELCI_DELEGATION")
@@ -96,9 +96,31 @@ def send_message(domain: str, to_agent_id: str, topic: str, intent: str, body: d
         return {"sent": False, "reason": "agent not listed in that card"}
     message = _agent().message(to=to_agent_id, topic=topic, intent=intent, body=body, thread=thread,
                                approval=approval)
-    status, reply = send(message, target.endpoint)
-    (store or _store()).add_sent(message, status, reply)
-    return {"sent": status == 202, "status": status, "reply": reply, "thread": message["thread"]}
+    status, response = send(message, target.endpoint)
+    store = store or _store()
+    store.add_sent(message, status, response)
+    out = {"sent": status == 202, "status": status, "reply": response, "thread": message["thread"]}
+    answer = response.get("reply") if isinstance(response, dict) else None
+    if isinstance(answer, dict):
+        out.update(_check_reply(answer, to_agent_id, resolve, store))
+    return out
+
+
+def _check_reply(answer: dict, to_agent_id: str, resolve, store: Store) -> dict:
+    """An agent may answer in its HTTP response. Trust that answer only once it verifies like any
+    incoming message (signature, delegation, freshness), and only if the agent we wrote to sent it."""
+    home = _home()
+    if not home.exists():
+        return {"reply_verified": None, "reply_problem": "no Elçi home to verify the answer against"}
+    try:
+        if answer.get("from") != to_agent_id:
+            raise Rejected("the answer comes from a different agent")
+        Inbox(home.card(), resolve_card=resolve).accept(answer)
+    except Rejected as exc:
+        return {"reply_verified": False, "reply_problem": str(exc)}
+    message_id = store.add_received(answer)
+    store.read_received(message_id)
+    return {"reply_verified": True, "answer": answer, "answer_id": message_id}
 
 
 def check_inbox(unread_only: bool = True, store: Store | None = None) -> list[dict]:

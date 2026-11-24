@@ -222,3 +222,20 @@ def test_cli_init_via_command_line(tmp_path, monkeypatch, capsys):
     assert b"ENCRYPTED" not in (tmp_path / "h" / "principal.pem").read_bytes()
     assert cli.main(["--home", str(tmp_path / "h"), "init", "--name", "T", "--domain", "t.example",
                      "--agent", "a:b"]) == 2  # already exists
+
+
+def test_add_agent_with_narrow_intents_and_export(tmp_path, monkeypatch):
+    import pytest
+
+    from elci.home import Home, HomeError
+
+    monkeypatch.setenv("ELCI_PASSPHRASE", "")
+    home = Home(tmp_path / "h")
+    home.init(name="A", domain="a.example", agents={"assistant": ("scheduling",)}, passphrase=None)
+    with pytest.raises(HomeError):
+        home.add_agent("demo", ("demo",), intents=["answer", "pay"])
+    home.add_agent("demo", ("demo",), intents=["needs_human", "answer"])
+    data = home.export_agent("demo")
+    assert data["intents"] == ["answer", "needs_human"]
+    assert data["endpoint"] == "https://a.example/inbox/demo" and "d" in data["jwk"]
+    assert all("d" not in k for a in home.build_card()["agents"] for k in a["jwks"]["keys"])

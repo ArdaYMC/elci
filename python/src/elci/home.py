@@ -27,11 +27,20 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .agent import Agent
 from .card import AgentCard
-from .crypto import Delegation, delegation_claims, issue_delegation, public_jwk
+from .crypto import Delegation, b64u, delegation_claims, issue_delegation, public_jwk
 from .inbox import is_domain_name
 
 DEFAULT_DAYS = 90
 DEFAULT_INTENTS = ("propose", "query", "answer", "decline", "needs_human", "accept")
+
+
+def _intents(intents) -> list[str]:
+    if not intents:
+        return list(DEFAULT_INTENTS)
+    unknown = set(intents) - set(DEFAULT_INTENTS)
+    if unknown:
+        raise HomeError(f"unknown intents: {', '.join(sorted(unknown))}; use {', '.join(DEFAULT_INTENTS)}")
+    return [i for i in DEFAULT_INTENTS if i in intents]
 
 
 def default_home() -> Path:
@@ -176,7 +185,8 @@ class Home:
         self._save(config)
         return config
 
-    def _add(self, config: dict, name: str, topics, principal_key, days: int, local: dict | None) -> None:
+    def _add(self, config: dict, name: str, topics, principal_key, days: int, local: dict | None,
+             intents=None) -> None:
         if not name or not all(c.isalnum() or c in "-_" for c in name):
             raise HomeError(f"agent names use letters, digits, - and _: {name!r}")
         if not topics:
@@ -186,20 +196,38 @@ class Home:
             "id": f"https://{domain}/agents/{name}",
             "endpoint": f"https://{domain}/inbox/{name}",
             "topics": list(topics),
-            "intents": list(DEFAULT_INTENTS),
+            "intents": _intents(intents),
             "local": local,
         }
         self._new_agent_key(config, name)
         self._delegate(config, name, principal_key, days)
 
     def add_agent(self, name: str, topics, passphrase: str | None = None, days: int = DEFAULT_DAYS,
-                  local: dict | None = None) -> dict:
+                  local: dict | None = None, intents=None) -> dict:
+        """``intents`` narrows what the agent may send; leave out ``accept`` for an agent that must
+        never commit to anything (a public demo, say)."""
         config = self.config()
         if name in config["agents"]:
             raise HomeError(f"{name} already exists")
-        self._add(config, name, topics, self.principal_key(passphrase), days, local)
+        self._add(config, name, topics, self.principal_key(passphrase), days, local, intents)
         self._save(config)
         return config["agents"][name]
+
+    def export_agent(self, name: str) -> dict:
+        """What a hosted agent needs to sign as ``name``: id, endpoint, delegation and its private key.
+
+        This is the agent key, never the principal key. Renewing or rotating changes it; export again.
+        """
+        config = self.config()
+        if name not in config["agents"]:
+            raise HomeError(f"no agent named {name!r}")
+        entry = config["agents"][name]
+        raw = self.agent_key(name).private_bytes(serialization.Encoding.Raw, serialization.PrivateFormat.Raw,
+                                                 serialization.NoEncryption())
+        jwk = {**entry["keys"][0], "d": b64u(raw)}
+        return {"id": entry["id"], "endpoint": entry["endpoint"], "domain": config["principal"]["domain"],
+                "topics": entry["topics"], "intents": entry["intents"], "delegation": entry["delegation"],
+                "jwk": jwk}
 
     def remove_agent(self, name: str) -> None:
         """Take an agent out of the card and revoke its delegation."""

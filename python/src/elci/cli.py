@@ -113,9 +113,22 @@ def cmd_agents(args, home: Home) -> int:
 def cmd_add(args, home: Home) -> int:
     agents = _parse_agents([args.agent])
     (name, topics), = agents.items()
-    home.add_agent(name, topics, _passphrase(), days=args.days)
+    intents = [i.strip() for i in args.intents.split(",") if i.strip()] if args.intents else None
+    home.add_agent(name, topics, _passphrase(), days=args.days, intents=intents)
     _out(f"✓ added {name}. Connect it: claude mcp add elci -e ELCI_AGENT={name} -- elci-mcp")
     _republish_hint(home)
+    return 0
+
+
+def cmd_export_agent(args, home: Home) -> int:
+    data = home.export_agent(args.name)
+    if "accept" in data["intents"]:
+        print(f"warning: {args.name} may send accept; a hosted agent is safer without it"
+              f" (elci remove {args.name}, then elci add ... --intents answer,propose,decline,needs_human)",
+              file=sys.stderr)
+    print("This is the agent's private key. Pipe it straight into a secret; do not save or paste it.",
+          file=sys.stderr)
+    _out(json.dumps(data, separators=(",", ":")))
     return 0
 
 
@@ -393,7 +406,13 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("add", help="make one more agent public")
     p.add_argument("agent", metavar="NAME:TOPICS")
     p.add_argument("--days", type=int, default=90)
+    p.add_argument("--intents", help="comma separated intents it may send (default: all); leave out accept"
+                                     " for an agent that must never commit, e.g. a public demo")
     p.set_defaults(fn=cmd_add)
+    p = sub.add_parser("export-agent", help="print one agent's key and delegation for a hosted agent"
+                                            " (e.g. the Worker demo: | npx wrangler secret put ELCI_DEMO)")
+    p.add_argument("name")
+    p.set_defaults(fn=cmd_export_agent)
     p = sub.add_parser("remove", help="take an agent out of the card and revoke it")
     p.add_argument("name")
     p.set_defaults(fn=cmd_remove)
