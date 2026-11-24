@@ -43,6 +43,7 @@ class AgentCard:
     domain: str
     agents: tuple[AgentEntry, ...]
     fallback: str | None = None
+    principal_keys: tuple[dict, ...] = ()
     raw: dict = field(default_factory=dict, compare=False, repr=False)
 
     @classmethod
@@ -64,8 +65,12 @@ class AgentCard:
             for a in data["agents"]
         )
         principal = data["principal"]
-        return cls(principal["name"], principal["domain"], agents, principal.get("fallback"), data)
+        return cls(principal["name"], principal["domain"], agents, principal.get("fallback"),
+                   tuple(principal.get("jwks", {}).get("keys", ())), data)
 
     def agent_for(self, topic: str) -> AgentEntry | None:
         """First public agent that accepts ``topic``; None means use the fallback."""
         return next((a for a in self.agents if topic in a.topics), None)
+
+    def agent(self, agent_id: str) -> AgentEntry | None:
+        return next((a for a in self.agents if a.id == agent_id), None)

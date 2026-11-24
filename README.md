@@ -32,7 +32,31 @@ Elçi focuses on three things existing attempts leave out:
 | --- | --- |
 | [`spec/`](spec/) | The protocol draft, JSON Schemas and language-neutral conformance vectors. **This is the standard.** |
 | [`python/`](python/) | Reference implementation (PyPI package `elci`). |
+| [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
+
+## What works today (0.0.4)
+
+- Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
+- Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks
+- A verifying inbox (schema, signature, delegation, replay) and a small HTTP transport
+- Need-to-know disclosure levels
+- Email fallback for people without an agent, with best-effort reply parsing
+- Signed human approval receipts required for binding steps
+- An MCP server (`elci-mcp`) so Claude Code or any MCP host can use Elçi
+
+Try the demo: `pip install -e python && python examples/three_agents.py --yes`
+
+## Use it from Claude Code (MCP)
+
+```bash
+pip install 'elci[mcp]'
+claude mcp add elci -- elci-mcp
+```
+
+Tools: `discover`, `route`, `send_message`, `draft_email`, `read_email_reply`, `redact_availability`.
+Sending needs `ELCI_AGENT_ID`, `ELCI_PRINCIPAL_DOMAIN`, `ELCI_AGENT_KEY_HEX` and `ELCI_DELEGATION`
+in the environment; keep the key in a secret store. `accept` is refused without a signed approval receipt.
 
 ## Quick look
 
