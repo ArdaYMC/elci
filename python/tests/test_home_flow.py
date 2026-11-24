@@ -239,3 +239,19 @@ def test_add_agent_with_narrow_intents_and_export(tmp_path, monkeypatch):
     assert data["intents"] == ["answer", "needs_human"]
     assert data["endpoint"] == "https://a.example/inbox/demo" and "d" in data["jwk"]
     assert all("d" not in k for a in home.build_card()["agents"] for k in a["jwks"]["keys"])
+
+
+def test_send_message_refuses_a_topic_outside_the_agents_delegation(tmp_path, monkeypatch):
+    from elci import mcp_server
+    from elci.home import Home
+
+    monkeypatch.setenv("ELCI_PASSPHRASE", "")
+    Home(tmp_path / "h").init(name="A", domain="a.example", agents={"bot": ("test",)}, passphrase=None)
+    monkeypatch.setenv("ELCI_HOME", str(tmp_path / "h"))
+    monkeypatch.delenv("ELCI_AGENT", raising=False)
+
+    def never(_):
+        raise AssertionError("must not even look up the receiver")
+
+    out = mcp_server.send_message("b.example", "https://b.example/agents/x", "scheduling", "query", {}, resolve=never)
+    assert out["sent"] is False and "scheduling" in out["reason"]
