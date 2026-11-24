@@ -59,7 +59,7 @@ and nothing binding happens until you say yes, in a way the other side can verif
 | [`examples/`](examples/) | Runnable demo: one person, three agents, need-to-know and email fallback. |
 | `typescript/` | Planned SDK (npm). Good first contribution once the vectors stabilise. |
 
-## What works today (0.2.0, spec draft 0.0.6)
+## What works today (0.2.1, spec draft 0.0.6)
 
 - Principal card discovery at `/.well-known/elci.json`, aligned with PAP 1.0 and A2A 1.0 ([mapping](docs/compatibility.md))
 - Ed25519-signed messages and delegation tokens (compact JWS) with expiry, agent, topic and intent checks

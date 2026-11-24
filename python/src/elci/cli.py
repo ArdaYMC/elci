@@ -32,7 +32,7 @@ from pathlib import Path
 
 from .discover import Candidate, find_local_agents, slug
 from .home import Home, HomeError, default_home
-from .inbox import CardCache, Inbox, Rejected, fetch_card, is_domain_name, serve
+from .inbox import USER_AGENT, CardCache, Inbox, Rejected, fetch_card, is_domain_name, serve
 from .store import Store, StoreError
 
 
@@ -226,7 +226,7 @@ def _relay_call(relay: dict, method: str, path: str, payload: object | None = No
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(f"https://{relay['domain']}{path}", data=data, method=method,
                                  headers={"Authorization": f"Bearer {relay['token']}",
-                                          "Content-Type": "application/json"})
+                                          "Content-Type": "application/json", "User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=20) as resp:  # noqa: S310 - https only
         body = resp.read()
     return json.loads(body) if body else None

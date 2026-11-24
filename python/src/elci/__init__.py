@@ -39,4 +39,4 @@ __all__ = [
     "LEVELS",
     "well_known_url",
 ]
-__version__ = "0.2.0"
+from ._version import __version__  # noqa: E402
