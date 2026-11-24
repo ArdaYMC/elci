@@ -1,19 +1,15 @@
-"""Locate the JSON Schemas shipped with the spec."""
+"""Load the JSON Schemas bundled with the package.
+
+``elci/schemas/`` is a copy of ``spec/schemas/``; ``tests/test_packaging.py`` keeps them identical.
+"""
 
 import json
 from functools import lru_cache
 from pathlib import Path
 
-_CANDIDATES = (
-    Path(__file__).parent / "schemas",  # installed wheel
-    Path(__file__).resolve().parents[3] / "spec" / "schemas",  # source checkout
-)
+SCHEMA_DIR = Path(__file__).parent / "schemas"
 
 
 @lru_cache(maxsize=None)
 def load(name: str) -> dict:
-    for base in _CANDIDATES:
-        path = base / name
-        if path.is_file():
-            return json.loads(path.read_text(encoding="utf-8"))
-    raise FileNotFoundError(f"schema {name!r} not found in {_CANDIDATES}")
+    return json.loads((SCHEMA_DIR / name).read_text(encoding="utf-8"))

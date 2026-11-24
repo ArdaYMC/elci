@@ -39,4 +39,4 @@ __all__ = [
     "LEVELS",
     "well_known_url",
 ]
-__version__ = "0.0.6"
+__version__ = "0.1.0"

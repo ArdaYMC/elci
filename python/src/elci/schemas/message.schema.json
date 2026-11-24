@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ArdaYMC/elci/spec/schemas/message.schema.json",
+  "title": "Elçi message envelope",
+  "type": "object",
+  "required": ["protocol_version", "from", "to", "on_behalf_of", "topic", "intent", "thread", "created_at", "body"],
+  "properties": {
+    "protocol_version": {"const": "0.0.2"},
+    "from": {"type": "string", "pattern": "^https://"},
+    "to": {"type": "string"},
+    "on_behalf_of": {"type": "string"},
+    "topic": {"type": "string"},
+    "intent": {"enum": ["propose", "query", "answer", "accept", "decline", "needs_human"]},
+    "thread": {"type": "string", "minLength": 8},
+    "created_at": {"type": "string", "format": "date-time"},
+    "body": {"type": "object"},
+    "approval": {"type": "object"},
+    "delegation": {"type": "string", "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"},
+    "signature": {"type": "string"}
+  }
+}
